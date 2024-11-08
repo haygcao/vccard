@@ -62,4 +62,4 @@ jobs:
           commit_message: "Update CSV files"
           file_pattern: "*.csv"
           repository: .
-          
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }} #  使用你指定的 secret 名称
