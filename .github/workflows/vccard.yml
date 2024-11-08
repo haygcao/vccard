@@ -62,4 +62,4 @@ jobs:
           commit_message: "Update CSV files"
           file_pattern: "*.csv"
           repository: .
-          token: ${{ secrets.GITHUB_TOKEN }} # 使用 YOUR_GITHUB_TOKEN
+          
