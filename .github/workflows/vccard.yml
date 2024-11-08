@@ -2,14 +2,18 @@ name: Generate and Commit CSV
 
 on:
   schedule:
-    - cron: '0 0 */30 * *'  # 每 30 天运行一次
-  workflow_dispatch: # 允许手动运行
+    - cron: '0 0 */30 * *'
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 授予写入权限
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4  # 使用 v4 版本 checkout
+        with:
+          fetch-depth: 0
 
       - name: Install Python
         uses: actions/setup-python@v4
@@ -57,7 +61,7 @@ jobs:
           EOF
 
       - name: Commit and Push CSV
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v5  # 更新到 v5 版本
         with:
           commit_message: "Update CSV files"
           file_pattern: "*.csv"
