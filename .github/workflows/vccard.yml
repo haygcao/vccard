@@ -3,6 +3,7 @@ name: Generate CSV
 on:
   schedule:
     - cron: '0 0 */30 * *'  # 每 30 天运行一次
+  workflow_dispatch:  # 允许手动运行 workflow
 
 jobs:
   build:
