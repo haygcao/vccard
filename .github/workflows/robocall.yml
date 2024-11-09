@@ -49,9 +49,27 @@ jobs:
           df = df.rename(columns={'Company_Phone_Number': 'phoneNumber'})
           
           df['phoneNumber'] = df['phoneNumber'].astype(str).apply(lambda x: re.sub(r"\.0$", "", x))
+          df['phoneNumber'] = df['phoneNumber'].str.replace('.', '', regex=False)
           df['phoneNumber'] = df['phoneNumber'].str.strip()
-          df = df[df['phoneNumber'] != '']
-          df.dropna(subset=['phoneNumber'], inplace=True) 
+
+
+          def format_phone_number(number):
+              try:
+                  if number.startswith("+"):
+                      parsed_number = phonenumbers.parse(number, None)
+                      if phonenumbers.is_valid_number(parsed_number):
+                          return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)
+                  else:
+                      parsed_number = phonenumbers.parse(number, "US")
+                      if phonenumbers.is_valid_number(parsed_number):
+                          return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.NATIONAL)
+              except phonenumbers.phonenumberutil.NumberParseException:
+                  pass
+              return number
+
+          df['phoneNumber'] = df['phoneNumber'].apply(format_phone_number)
+
+          df = df[df['phoneNumber'].notna() & (df['phoneNumber'] != '')]  # Filter after formatting
 
 
           
