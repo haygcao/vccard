@@ -27,9 +27,9 @@ jobs:
 
       - name: Download FTC data
         run: |
-          year=$(date +%Y)
-          month=$(date +%m)
-          day=$(date +%d)
+          year=$(date -d "yesterday" +%Y)
+          month=$(date -d "yesterday" +%m)
+          day=$(date -d "yesterday" +%d)
           wget -O ftc_data.csv "https://www.ftc.gov/sites/default/files/DNC_Complaint_Numbers_${year}-${month}-${day}.csv"
 
       - name: Process FTC data
