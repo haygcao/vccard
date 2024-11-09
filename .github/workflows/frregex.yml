@@ -1,0 +1,44 @@
+name: FR Regex Daily Data Processing
+
+on:
+  schedule:
+    - cron: '0 1 * * 3' # Run every Wednesday at 1:00 AM (UTC)
+  workflow_dispatch:
+
+jobs:
+  process_data:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fr
+          fetch-depth: 0
+
+
+
+      - name: Download Begone List
+        run: wget https://raw.githubusercontent.com/oulixalt/BegoneListeFR/refs/heads/Liste-compl%C3%A8te/Begone-FR.xml -O begone.xml
+
+      - name: Parse XML and generate JSON
+        run: |
+          # Install xmllint and jq
+          sudo apt-get update && sudo apt-get install -y libxml2-utils jq
+
+          # Extract numbers and generate JSON
+          xmllint --xpath "//dict/key[text()='number']/following-sibling::string[1]/text()" begone.xml | \
+          while read number; do
+            pattern=$(echo "$number" | sed 's/+//g; s/#/.*/g; s/^/33/; s/$/$/')
+            name="Block numbers starting with ${pattern:2:4}" # Generate name based on pattern 
+            jq -nc '{pattern: "'"$pattern"'", name: "'"$name"'", isWhitelist: false, isBlacklist: true, enabled: true}'
+          done > begone.json
+
+      - name: Commit and Push CSV
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update processed FCC data"
+          file_pattern: "processed_data.csv"
+          branch: fr
+          repository: .
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
