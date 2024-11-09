@@ -38,8 +38,12 @@ jobs:
 
           # Clean phone numbers and filter out empty ones
           df['phoneNumber'] = df['phoneNumber'].astype(str).apply(lambda x: re.sub(r"^'+", "", x)) #added
-          df = df[df['phoneNumber'].str.strip() != '']
+          df['phoneNumber'] = df['phoneNumber'].str.replace('.', '', regex=False) # 移除所有点
+          # 先处理 NaN，再去除空格，最后过滤空字符串
 
+          df['phoneNumber'] = df['phoneNumber'].str.strip()
+          df = df[df['phoneNumber'] != '']
+          df.dropna(subset=['phoneNumber'], inplace=True)  # 删除 phoneNumber 为 NaN 的行
 
           
           df['label'] = 'Telemarketing'
