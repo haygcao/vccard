@@ -49,6 +49,11 @@ jobs:
           df = df.rename(columns={'Company_Phone_Number': 'phoneNumber'})
           
           df['phoneNumber'] = df['phoneNumber'].astype(str).apply(lambda x: re.sub(r"\.0$", "", x))
+          df['phoneNumber'] = df['phoneNumber'].str.strip()
+          df = df[df['phoneNumber'] != '']
+          df.dropna(subset=['phoneNumber'], inplace=True) 
+
+
           
           df['label'] = 'Robocall'
           df['name'] = ''
