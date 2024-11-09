@@ -38,10 +38,12 @@ jobs:
 
           # Clean phone numbers and filter out empty ones
           df['phoneNumber'] = df['phoneNumber'].astype(str).apply(lambda x: re.sub(r"^'+", "", x)) #added
-          df.dropna(subset=['phoneNumber'], inplace=True)  # 删除 phoneNumber 为 NaN 的行
+
           df['phoneNumber'] = df['phoneNumber'].str.strip()
           df = df[df['phoneNumber'] != '']
+          df.dropna(subset=['phoneNumber'], inplace=True)  # 删除 phoneNumber 为 NaN 的行
 
+          
           df['label'] = 'Telemarketing'
           df['avatar'] = ''
           df['isSubscribed'] = True  # Set isSubscribed to True
