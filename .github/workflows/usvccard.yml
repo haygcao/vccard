@@ -39,8 +39,8 @@ jobs:
           # Clean phone numbers and filter out empty ones
           df['phoneNumber'] = df['phoneNumber'].astype(str).apply(lambda x: re.sub(r"^'+", "", x)) #added
           df['phoneNumber'] = df['phoneNumber'].str.strip() # 去除空格
-          df = df[df['phoneNumber'].notna()] # 过滤掉 NaN 值
-          df = df[df['phoneNumber'] != ''] # 过滤掉空字符串
+          # 删除 phoneNumber 为空的行
+          df = df[df['phoneNumber'] != '']
 
           df['label'] = 'Telemarketing'
           df['avatar'] = ''
