@@ -30,13 +30,19 @@ jobs:
 
           python <<EOF
           import pandas as pd
+          import re
 
           df = pd.read_csv('data.csv')
           df = df[['business_name', 'contact_telephone_number']]
           df = df.rename(columns={'business_name': 'name', 'contact_telephone_number': 'phoneNumber'})
+
+          # Clean phone numbers and filter out empty ones
+          df['phoneNumber'] = df['phoneNumber'].astype(str).apply(lambda x: re.sub(r"^'+", "", x)) #added
+          df = df[df['phoneNumber'].str.strip() != '']   #added
+
           df['label'] = 'Telemarketing'
           df['avatar'] = ''
-          df['isSubscribed'] = ''
+          df['isSubscribed'] = True  # Set isSubscribed to True
           df['count'] = ''
           df['url'] = ''
           df = df[['phoneNumber', 'label', 'name', 'avatar', 'isSubscribed', 'count', 'url']]
