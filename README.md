@@ -1,1 +1,1 @@
-* **中国 vCards CN 数据：** [https://github.com/haygcao/yourcallyourruletranslation/blob/main/workflow%20for%20%E4%B8%AD%E5%9B%BD/%E9%80%9A%E8%AE%AF%E5%BD%95.yml](https://github.com/haygcao/yourcallyourruletranslation/blob/main/workflow%20for%20%E4%B8%AD%E5%9B%BD/%E9%80%9A%E8%AE%AF%E5%BD%95.yml)) 所有数据归功于[vCards 中国黄页 - 优化 iOS/Android 来电、信息界面体验](https://github.com/metowolf/vCards) 
+* **US FCC Database:** * https://github.com/haygcao/yourcallyourruletranslation/blob/main/workflow%20for%20us/fcc%20database.yml
