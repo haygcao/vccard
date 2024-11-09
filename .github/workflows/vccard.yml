@@ -1,18 +1,19 @@
-name: Generate and Commit CSV
+name: US FCC database Daily Data Processing
 
 on:
   schedule:
-    - cron: '0 0 */30 * *'
+    - cron: '0 3 * * *'
   workflow_dispatch:
 
 jobs:
-  build:
+  process_data:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: us
           fetch-depth: 0
 
       - name: Install Python
@@ -20,52 +21,59 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install PyYAML and requests
-        run: pip install pyyaml requests
+      - name: Install pandas and phonenumbers
+        run: pip install pandas phonenumbers
 
-      - name: Generate CSV
+      - name: Download and Process Data
         run: |
+          wget -O data.csv https://fccprod.servicenowservices.com/api/x_g_fmc_rmd/rmd/csv_download
+
           python <<EOF
-          import yaml
-          import requests
-          import os
-          import json
+          import pandas as pd
           import re
+          import phonenumbers
 
-          base_url = "https://api.github.com/repos/metowolf/vCards/contents/data"
-          headers = {"Accept": "application/vnd.github+json"}
+          df = pd.read_csv('data.csv')
+          df = df[['business_name', 'contact_telephone_number']]
+          df = df.rename(columns={'business_name': 'name', 'contact_telephone_number': 'phoneNumber'})
 
-          response = requests.get(base_url, headers=headers)
-          folders = json.loads(response.text)
+          df['phoneNumber'] = df['phoneNumber'].astype(str).apply(lambda x: re.sub(r"^'+", "", x))
+          df['phoneNumber'] = df['phoneNumber'].str.replace('.', '', regex=False)
+          df['phoneNumber'] = df['phoneNumber'].str.strip()
+          df = df[df['phoneNumber'] != '']
+          df.dropna(subset=['phoneNumber'], inplace=True)
 
-          for folder in folders:
-            if folder["type"] == "dir":
-              label = folder["name"]
-              csv_filename = f'{label}.csv'
-              with open(csv_filename, 'w', encoding='utf-8') as f:  # 添加 encoding 参数
-                f.write('phoneNumber,label,name,avatar,isSubscribed,count,url\n')
-                folder_url = folder["url"]
-                folder_response = requests.get(folder_url, headers=headers)
-                files = json.loads(folder_response.text)
-                for file in files:
-                  if file["name"].endswith(".yaml"):
-                    name, ext = os.path.splitext(file["name"])
-                    yaml_url = file["download_url"]
-                    yaml_response = requests.get(yaml_url)
-                    data = yaml.safe_load(yaml_response.text)
-                    if 'basic' in data and 'organization' in data['basic'] and 'cellPhone' in data['basic']:
-                      organization = data['basic']['organization']
-                      avatar = f'https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/{label}/{name}.png'
-                      for phone in data['basic']['cellPhone']:
-                        
-                        cleaned_phone = re.sub(r'[- ]|,[\d]*$', '', str(phone))  # 正确的正则表达式 # 更新清理规则 cleaned_phone = re.sub(r'[- ]', '', str(phone)) # 转换 phone 为字符串
-                        f.write(f'{cleaned_phone},{label},{organization},{avatar},true,,\n')
+          def format_phone_number(number):
+              try:
+                  if number.startswith("+"):  # Check for "+" prefix
+                      parsed_number = phonenumbers.parse(number, None)
+                      if phonenumbers.is_valid_number(parsed_number):
+                          return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)
+                  else:
+                      parsed_number = phonenumbers.parse(number, "US")
+                      if phonenumbers.is_valid_number(parsed_number):
+                          return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.NATIONAL)
+
+              except phonenumbers.phonenumberutil.NumberParseException:
+                  pass
+              return number
+
+          df['phoneNumber'] = df['phoneNumber'].apply(format_phone_number)
+
+          df['label'] = 'Telemarketing'
+          df['avatar'] = ''
+          df['isSubscribed'] = True
+          df['count'] = ''
+          df['url'] = ''
+          df = df[['phoneNumber', 'label', 'name', 'avatar', 'isSubscribed', 'count', 'url']]
+          df.to_csv('processed_data.csv', index=False)
           EOF
 
       - name: Commit and Push CSV
-        uses: stefanzweifel/git-auto-commit-action@v5  # 更新到 v5 版本
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update CSV files"
-          file_pattern: "*.csv"
+          commit_message: "Update processed FCC data"
+          file_pattern: "processed_data.csv"
+          branch: us
           repository: .
-          token: ${{ secrets.YOUR_GITHUB_TOKEN }} #  使用你指定的 secret 名称
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }} 
