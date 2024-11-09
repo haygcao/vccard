@@ -2,29 +2,33 @@ name: US FCC database Daily Data Processing
 
 on:
   schedule:
-    - cron: '0 3 * * *' # Runs daily at 3:00 AM US Eastern Time
-  workflow_dispatch: # Allows manual triggering
+    - cron: '0 3 * * *'
+  workflow_dispatch:
 
 jobs:
   process_data:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4  # Updated to v4
+        with:
+          ref: us         # Checkout the 'us' branch
+          fetch-depth: 0
 
-      - name: Download data
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install pandas
+        run: pip install pandas
+
+      - name: Download and Process Data
         run: |
           wget -O data.csv https://fccprod.servicenowservices.com/api/x_g_fmc_rmd/rmd/csv_download
 
-      - name: Process data
-        run: |
-          # Install necessary tools
-          sudo apt-get update
-          sudo apt-get install -y python3 python3-pip
-          pip3 install pandas
-
-          # Process data with Python
-          python3 <<EOF
+          python <<EOF
           import pandas as pd
 
           df = pd.read_csv('data.csv')
@@ -39,41 +43,12 @@ jobs:
           df.to_csv('processed_data.csv', index=False)
           EOF
 
-      - name: Commit changes
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const fs = require('fs');
-            if (fs.existsSync('processed_data.csv')) {
-              try {
-                const fileContents = fs.readFileSync('processed_data.csv', 'base64');
-                const response = await github.rest.repos.getContent({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  path: 'processed_data.csv',
-                });
 
-                await github.rest.repos.createOrUpdateFileContents({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  path: 'processed_data.csv',
-                  message: 'Update processed data',
-                  content: fileContents,
-                  sha: response.data.sha, // Use the existing SHA
-                });
-              } catch (error) {
-                if (error.status === 404) {
-                  // File doesn't exist, create it
-                  await github.rest.repos.createOrUpdateFileContents({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    path: 'processed_data.csv',
-                    message: 'Create processed data',
-                    content: fs.readFileSync('processed_data.csv', 'base64'),
-                  });
-                } else {
-                  console.error("Error committing file:", error);
-                  throw error; // Re-throw the error to fail the action
-                }
-              }
-            }
+      - name: Commit and Push CSV
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update processed FCC data"
+          file_pattern: "processed_data.csv"
+          branch: us             # Push to the 'us' branch
+          repository: .
+          token: ${{ secrets.secrets.YOUR_GITHUB_TOKEN }}
