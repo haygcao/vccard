@@ -46,10 +46,13 @@ jobs:
           df = pd.read_csv('ftc_data.csv')
           df = df[['Company_Phone_Number']]
           df = df.rename(columns={'Company_Phone_Number': 'phoneNumber'})
+          
+          df['phoneNumber'] = df['phoneNumber'].astype(str).apply(lambda x: re.sub(r"\.0$", "", x))
+          
           df['label'] = 'Robocall'
           df['name'] = ''
           df['avatar'] = ''
-          df['isSubscribed'] = ''
+          df['isSubscribed'] = True  # Set isSubscribed to True
           df['count'] = ''
           df['url'] = ''
           df = df[['phoneNumber', 'label', 'name', 'avatar', 'isSubscribed', 'count', 'url']]
