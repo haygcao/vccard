@@ -42,7 +42,8 @@ jobs:
           # Process FTC data with Python
           python3 <<EOF
           import pandas as pd
-
+          import re
+          
           df = pd.read_csv('ftc_data.csv')
           df = df[['Company_Phone_Number']]
           df = df.rename(columns={'Company_Phone_Number': 'phoneNumber'})
