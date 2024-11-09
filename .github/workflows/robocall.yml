@@ -43,6 +43,7 @@ jobs:
           python3 <<EOF
           import pandas as pd
           import re
+          import phonenumbers
           
           df = pd.read_csv('ftc_data.csv')
           df = df[['Company_Phone_Number']]
