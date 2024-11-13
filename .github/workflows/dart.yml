@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests pypinyin 
+          pip install requests pypinyin
 
       - name: Download and Process SQL data
         run: |
@@ -51,23 +51,29 @@ jobs:
               en_map = {}
 
               with io.StringIO(sql_content) as sql_io:
-                  reader = csv.DictReader(sql_io, delimiter=',', quotechar="'", quoting=csv.QUOTE_ALL, fieldnames=['id','pref','phone','province','city','isp','isp_type','post_code','city_code','area_code','create_time'])
-                  next(reader)  # Skip the CREATE TABLE statement
+                  # Corrected DictReader to handle initial lines
+                  reader = csv.DictReader(
+                      (line for line in sql_io if line.startswith("INSERT")),
+                      delimiter=',',
+                      quotechar="'",
+                      quoting=csv.QUOTE_ALL,
+                      fieldnames=['id', 'pref', 'phone', 'province', 'city', 'isp', 'isp_type', 'post_code', 'city_code', 'area_code', 'create_time']
+                  )
+
 
                   for row in reader:
-                       if not row or not isinstance(row, dict):
-                           continue
-                       pref = row.get('pref','').strip()
-                       province = row.get('province','').strip()
-                       city = row.get('city','').strip()
-                       if pref and province and city:
-                           try:
-                               phone_key = int("86" + pref)
-                           except ValueError as e:
-                               print(f"Skipping record due to invalid pref: {pref}")
-                               continue
-                           zh_map[phone_key] = f"{province}{city}"
-                           en_map[phone_key] = convert_to_pinyin(province, city)
+                      pref = row.get('pref', '').strip()
+                      province = row.get('province', '').strip()
+                      city = row.get('city', '').strip()
+                      if pref and province and city:
+                          try:
+                              phone_key = int("86" + pref)
+                          except ValueError as e:
+                              print(f"Skipping record due to invalid pref: {pref}")
+                              continue
+                          zh_map[phone_key] = f"{province}{city}"
+                          en_map[phone_key] = convert_to_pinyin(province, city)
+
 
               print(f"Processed {len(zh_map)} records")
               return zh_map, en_map
@@ -90,6 +96,7 @@ jobs:
                   for phone, location in en_map.items():
                       f.write(f'  {phone}: "{location}",\n')
                   f.write('};\n')
+
 
           if __name__ == '__main__':
               try:
