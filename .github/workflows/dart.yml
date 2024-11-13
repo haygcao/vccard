@@ -4,7 +4,9 @@ on:
   workflow_dispatch: # Run manually or schedule separately
   # schedule:
   #   - cron: '0 12 1 * *' # Example schedule - adjust as needed
-
+  
+permissions:
+  contents: write
 
 jobs:
   convert-sql:
