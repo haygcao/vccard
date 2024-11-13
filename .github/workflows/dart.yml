@@ -33,6 +33,7 @@ jobs:
           from pypinyin import lazy_pinyin, Style
           import sqlite3
           import io
+          import os
 
           def download_sql_file():
               url = "https://github.com/dannyhu926/phone_location/raw/refs/heads/master/mysql/phone_location.sql"
@@ -50,13 +51,17 @@ jobs:
               en_map = {}
 
               conn = sqlite3.connect(':memory:')
-              # Remove MySQL specific commands that sqlite3 doesn't understand
+
+              # Remove MySQL-specific syntax that SQLite doesn't support
               sql_content = sql_content.replace("SET NAMES utf8mb4;", "")
               sql_content = sql_content.replace("SET FOREIGN_KEY_CHECKS = 0;", "")
-              conn.executescript(sql_content)  # Execute remaining SQL
-              cursor = conn.cursor()
+              sql_content = sql_content.replace(" UNSIGNED ", " ")
+              sql_content = sql_content.replace("AUTO_INCREMENT", "")
+              sql_content = sql_content.replace("ENGINE = InnoDB AUTO_INCREMENT = 509949 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;", "")
 
               try:
+                  conn.executescript(sql_content)
+                  cursor = conn.cursor()
                   cursor.execute("SELECT pref, phone, province, city FROM phone_location")
                   rows = cursor.fetchall()
                   for row in rows:
@@ -76,9 +81,7 @@ jobs:
               print(f"Processed {len(zh_map)} records")
               return zh_map, en_map
 
-
           def generate_dart_files(zh_map, en_map):
-              import os
               os.makedirs('lib', exist_ok=True)
 
               with open('lib/phone_location_zh.dart', 'w', encoding='utf-8') as f:
@@ -97,6 +100,7 @@ jobs:
                       f.write(f'  {phone}: "{location}",\n')
                   f.write('};\n')
 
+
           if __name__ == '__main__':
               try:
                   sql_content = download_sql_file()
@@ -106,7 +110,6 @@ jobs:
               except Exception as e:
                   print(f"Error occurred: {str(e)}")
                   raise
-
           EOF
           python process_data.py
 
