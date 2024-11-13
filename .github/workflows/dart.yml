@@ -78,7 +78,7 @@ jobs:
           git push origin dartnumber  # Push to your branch
 
 
-      - name: Stage 2: Preprocess CSV
+      - name: Stage 2 Preprocess CSV
         run: |
           cat > preprocess_csv.py << 'EOF'
           import pandas as pd
@@ -94,7 +94,7 @@ jobs:
           EOF
           python preprocess_csv.py
 
-      - name: Stage 3: Generate Dart files
+      - name: Stage 3 Generate Dart files
         run: |
           cat > generate_dart.py << 'EOF'
           import csv
