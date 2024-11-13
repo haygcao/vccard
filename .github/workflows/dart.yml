@@ -5,12 +5,17 @@ on:
     - cron: '0 12 15 * *' # Runs every month on the 15th at 12:00 PM UTC
   workflow_dispatch:
 
+permissions:
+  contents: write  # 添加写入权限
+
 jobs:
   convert-data:
     runs-on: ubuntu-latest
     
     steps:
       - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
       
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -104,17 +109,16 @@ jobs:
           EOF
           
           python process_data.py
-          
-      - name: Commit Dart Files
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Update Dart phone location maps"
-          file_pattern: lib/phone_location_zh.dart lib/phone_location_en.dart
-          branch: dartnumber
-          repository: .
-          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
-          
 
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add lib/phone_location_*.dart
+          git commit -m "Update Dart phone location maps"
+          git push
 
       - name: Cleanup
-        run: mysql -u root -e "DROP DATABASE temp_phone_location;"
+        if: always()
+        run: |
+          rm -f process_data.py
