@@ -5,6 +5,8 @@ on:
     - cron: '0 12 15 * *' # Runs every month on the 15th at 12:00 PM UTC
   workflow_dispatch:
 
+
+
 permissions:
   contents: write
 
@@ -15,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: dartnumber
+          ref: dartnumber # 检出你的代码库分支
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -25,11 +27,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests pypinyin
+          pip install requests pypinyin sqlite3
 
-      - name: Download and Process SQL data
+      - name: Download, Process SQL data and Generate Dart files
         run: |
-          cat > process_data.py << 'EOF'
           import sqlite3
           import requests
           from pypinyin import lazy_pinyin, Style
@@ -52,8 +53,11 @@ jobs:
               en_map = {}
 
               # 使用 sqlite3 处理 SQL 文件
-              conn = sqlite3.connect(':memory:')  # 使用内存数据库
+              conn = sqlite3.connect(':memory:')
               cursor = conn.cursor()
+
+              # 移除 SQL 文件开头不需要的语句
+              sql_content = sql_content.split("INSERT INTO")[1].strip()
               cursor.executescript(sql_content)
 
               cursor.execute("SELECT pref, phone, province, city FROM phone_location")
@@ -107,9 +111,6 @@ jobs:
               except Exception as e:
                   print(f"Error occurred: {str(e)}")
                   raise
-          EOF
-
-          python process_data.py
 
       - name: Commit and Push Changes
         run: |
