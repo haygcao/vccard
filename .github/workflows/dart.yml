@@ -51,7 +51,6 @@ jobs:
               en_map = {}
 
               with io.StringIO(sql_content) as sql_io:
-                  # Corrected DictReader to handle initial lines
                   reader = csv.DictReader(
                       (line for line in sql_io if line.startswith("INSERT")),
                       delimiter=',',
@@ -60,20 +59,19 @@ jobs:
                       fieldnames=['id', 'pref', 'phone', 'province', 'city', 'isp', 'isp_type', 'post_code', 'city_code', 'area_code', 'create_time']
                   )
 
-
                   for row in reader:
-                      pref = row.get('pref', '').strip()
+                      phone = row.get('phone', '').strip()
                       province = row.get('province', '').strip()
                       city = row.get('city', '').strip()
-                      if pref and province and city:
+
+                      if phone and province and city:
                           try:
-                              phone_key = int("86" + pref)
+                              phone_key = int("86" + phone)
                           except ValueError as e:
-                              print(f"Skipping record due to invalid pref: {pref}")
+                              print(f"Skipping record due to invalid phone: {phone}, error: {e}")
                               continue
                           zh_map[phone_key] = f"{province}{city}"
                           en_map[phone_key] = convert_to_pinyin(province, city)
-
 
               print(f"Processed {len(zh_map)} records")
               return zh_map, en_map
