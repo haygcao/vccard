@@ -6,39 +6,104 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  convert-data:
     runs-on: ubuntu-latest
-
+    
     steps:
       - uses: actions/checkout@v3
-
-      - name: Download SQL File
-        run: wget https://github.com/dannyhu926/phone_location/raw/refs/heads/master/mysql/phone_location.sql -O phone_location.sql
-
-      - name: Generate Dart Maps
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          
+      - name: Install dependencies
         run: |
-          awk -F'\t' '$0 ~ /^INSERT INTO/ { for (i=2; i<=NF; i++) { split($i, a, ","); phone = a[1]; province = a[2]; city = a[3]; printf "    86%s: \"%s%s\",\n", phone, province, city > zh.txt; printf "    86%s: \"%s, %s\",\n", phone, province, city > en.txt } }' phone_location.sql
-          sed -i 's/^[^(]*(\([^)]*\)).*/\1/' zh.txt  # Remove extra characters
-          sed -i 's/^[^(]*(\([^)]*\)).*/\1/' en.txt
-
-
-      - name: Create Dart Files
+          python -m pip install --upgrade pip
+          pip install mysql-connector-python pandas pypinyin requests
+          
+      - name: Download and Process SQL data
         run: |
-          cat << EOF > lib/phone_location_zh.dart
-          Map<int, String> get86_zh() {
-            return {
-          $(cat zh.txt)
-            };
-          }
+          cat > process_data.py << 'EOF'
+          import re
+          import pandas as pd
+          import requests
+          from pypinyin import lazy_pinyin
+          
+          def download_sql_file():
+              url = "https://github.com/dannyhu926/phone_location/raw/refs/heads/master/mysql/phone_location.sql"
+              response = requests.get(url)
+              response.raise_for_status()  # 确保下载成功
+              return response.text
+          
+          def convert_to_pinyin(text):
+              return ' '.join(lazy_pinyin(text))
+              
+          def process_sql_data(sql_content):
+              # Extract data using regex
+              pattern = r"INSERT INTO.*VALUES\s*\((.*?)\)"
+              matches = re.findall(pattern, sql_content, re.DOTALL)
+              
+              data = []
+              for match in matches:
+                  values = [v.strip("'") for v in match.split(',')]
+                  if len(values) >= 3:
+                      phone = values[0]
+                      province = values[1]
+                      city = values[2]
+                      
+                      # Add 86 prefix to phone
+                      phone = "86" + phone
+                      
+                      # Combine location info
+                      zh_location = f"{province}{city}"
+                      en_location = f"{convert_to_pinyin(province)}, {convert_to_pinyin(city)}"
+                      
+                      data.append({
+                          'phone': int(phone),
+                          'zh_location': zh_location,
+                          'en_location': en_location
+                      })
+              
+              return pd.DataFrame(data)
+          
+          def generate_dart_files(df):
+              # Ensure lib directory exists
+              import os
+              os.makedirs('lib', exist_ok=True)
+              
+              # Generate Chinese version
+              with open('lib/phone_location_zh.dart', 'w', encoding='utf-8') as f:
+                  f.write('Map<int, String> get86_zh() {\n  return {\n')
+                  for _, row in df.iterrows():
+                      f.write(f'    {row["phone"]}: "{row["zh_location"]}",\n')
+                  f.write('  };\n}\n')
+              
+              # Generate English (Pinyin) version
+              with open('lib/phone_location_en.dart', 'w', encoding='utf-8') as f:
+                  f.write('Map<int, String> get86_en() {\n  return {\n')
+                  for _, row in df.iterrows():
+                      f.write(f'    {row["phone"]}: "{row["en_location"]}",\n')
+                  f.write('  };\n}\n')
+          
+          if __name__ == '__main__':
+              try:
+                  print("Downloading SQL file...")
+                  sql_content = download_sql_file()
+                  
+                  print("Processing SQL data...")
+                  df = process_sql_data(sql_content)
+                  
+                  print("Generating Dart files...")
+                  generate_dart_files(df)
+                  
+                  print("Processing completed successfully!")
+              except Exception as e:
+                  print(f"Error occurred: {str(e)}")
+                  raise
           EOF
-
-          cat << EOF > lib/phone_location_en.dart
-          Map<int, String> get86_en() {
-            return {
-          $(cat en.txt)
-            };
-          }
-          EOF
+          
+          python process_data.py
           
       - name: Commit Dart Files
         uses: stefanzweifel/git-auto-commit-action@v5
