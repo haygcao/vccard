@@ -60,9 +60,9 @@ jobs:
                   )
 
                   for row in reader:
-                      phone = row.get('phone', '').strip()
-                      province = row.get('province', '').strip()
-                      city = row.get('city', '').strip()
+                      phone = row.get('phone', '').strip("'")  # Remove quotes
+                      province = row.get('province', '').strip("'")  # Remove quotes
+                      city = row.get('city', '').strip("'")  # Remove quotes
 
                       if phone and province and city:
                           try:
@@ -94,7 +94,6 @@ jobs:
                   for phone, location in en_map.items():
                       f.write(f'  {phone}: "{location}",\n')
                   f.write('};\n')
-
 
           if __name__ == '__main__':
               try:
