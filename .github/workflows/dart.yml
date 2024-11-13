@@ -1,0 +1,68 @@
+name: Generate Dart Phone Location Maps
+
+on:
+  schedule:
+    - cron: '0 12 15 * *' # Runs every month on the 15th at 12:00 PM UTC
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install MySQL Client
+        run: sudo apt-get update && sudo apt-get install -y mysql-client
+
+      - name: Download SQL File
+        run: wget https://github.com/dannyhu926/phone_location/raw/refs/heads/master/mysql/phone_location.sql -O phone_location.sql
+
+      - name: Create Temporary Database and Table
+        run: |
+          mysql -u root -e "CREATE DATABASE IF NOT EXISTS temp_phone_location;"
+          mysql -u root temp_phone_location < phone_location.sql
+
+      - name: Generate Dart Maps
+        run: |
+          mysql -u root -N temp_phone_location -e "SELECT phone, province, city FROM phone_location" | awk -F'\t' '{printf "    86%s: \"%s%s\",\n", $1, $2, $3}' > zh.txt
+          mysql -u root -N temp_phone_location -e "SELECT phone, province, city FROM phone_location" | awk -F'\t' '{printf "    86%s: \"%s, %s\",\n", $1, $2, $3}' > en.txt # Placeholder for Pinyin conversion
+
+
+      - name: Create Dart Files
+        run: |
+          cat << EOF > lib/phone_location_zh.dart
+          Map<int, String> get86_zh() {
+            return {
+          $(cat zh.txt)
+            };
+          }
+          EOF
+
+          cat << EOF > lib/phone_location_en.dart
+          Map<int, String> get86_en() {
+            return {
+          $(cat en.txt)
+            };
+          }
+          EOF
+          
+      - name: Commit Dart Files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update Dart phone location maps"
+          file_pattern: lib/phone_location_zh.dart lib/phone_location_en.dart
+          branch: dartnumber
+          repository: .
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
+          
+
+
+      - name: Cleanup
+        run: mysql -u root -e "DROP DATABASE temp_phone_location;"
