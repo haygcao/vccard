@@ -69,16 +69,16 @@ jobs:
           EOF
           python convert_sql_to_csv.py
 
+      - name: Commit and Push CSV
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update processed FCC data"
+          file_pattern: "phone_location.csv"
+          branch: dartnumber
+          repository: .
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
 
 
-      - name: Commit CSV to Repository
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add phone_location.csv
-          git commit -m "Update phone location CSV"
-          
-          git push https://${{ secrets.YOUR_GITHUB_TOKEN }}@github.com/${{ github.repository }}:dartnumber -f # Force push
 
       - name: Stage 2 Preprocess CSV
         run: |
@@ -157,12 +157,13 @@ jobs:
           EOF
           python generate_dart.py
 
+      - name: Commit and Push dart
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update Dart phone location maps"
+          file_pattern: "lib/phone_location_*.dart"
+          branch: dartnumber
+          repository: .
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
 
-      - name: Commit and Push Changes
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add lib/phone_location_*.dart
-          git commit -m "Update Dart phone location maps"
-          
-          git push https://${{ secrets.YOUR_GITHUB_TOKEN }}@github.com/${{ github.repository }}:dartnumber -f # Force push
+
