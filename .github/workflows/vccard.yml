@@ -59,7 +59,7 @@ jobs:
                       for phone in data['basic']['cellPhone']:
                         
                         cleaned_phone = re.sub(r'[- ]|,[\d]*$', '', str(phone))  # 正确的正则表达式 # 更新清理规则 cleaned_phone = re.sub(r'[- ]', '', str(phone)) # 转换 phone 为字符串
-                        f.write(f'{cleaned_phone},{label},{organization},{avatar},true,,\n')
+                        f.write(f'{cleaned_phone},{label},{organization},{avatar},1,,\n')
           EOF
 
       - name: Commit and Push CSV
