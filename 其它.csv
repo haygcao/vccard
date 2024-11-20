@@ -1,6 +1,6 @@
-phoneNumber,label,name,avatar,isSubscribed,count,url
-4006668800,其它,Apple,https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/其它/Apple.png,1,,
-4006272273,其它,Apple,https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/其它/Apple.png,1,,
-4006198141,其它,Apple,https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/其它/Apple.png,1,,
-4008109000,其它,Sony,https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/其它/sony.png,1,,
-4008866140,其它,Xbox,https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/其它/xbox.png,1,,
+"phoneNumber","label","name","avatar","isSubscribed","count","url"
+"4006668800","其它","Apple","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/其它/Apple.png","1","",""
+"4006272273","其它","Apple","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/其它/Apple.png","1","",""
+"4006198141","其它","Apple","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/其它/Apple.png","1","",""
+"4008109000","其它","Sony","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/其它/sony.png","1","",""
+"4008866140","其它","Xbox","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/其它/xbox.png","1","",""
