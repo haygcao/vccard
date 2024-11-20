@@ -85,13 +85,15 @@ jobs:
 
           df = pd.read_csv('processed_data.csv')
 
-          # Remove "" and NaN values
+          # Remove ""
           df = df.replace('""', '', regex=False)
-          df = df.dropna()
+
+          # Remove rows where phoneNumber is empty or NaN *after* other processing
+          df = df[df['phoneNumber'].notna() & (df['phoneNumber'] != '')]
+
 
           # Remove duplicate phone numbers, keeping the last occurrence
-          df = df.drop_duplicates(subset='phoneNumber', keep='last')
-
+          df = df.groupby('phoneNumber').last().reset_index()
 
           df.to_csv('FCC_data.csv', index=False)
           EOF
