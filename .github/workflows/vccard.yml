@@ -1,4 +1,4 @@
-name: Generate and Commit CSV
+name: China VC CARD
 
 on:
   schedule:
