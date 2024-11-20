@@ -77,3 +77,30 @@ jobs:
           branch: us
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
+
+      - name: Post-process Data
+        run: |
+          python <<EOF
+          import pandas as pd
+
+          df = pd.read_csv('processed_data.csv')
+
+          # Remove "" and NaN values
+          df = df.replace('""', '', regex=False)
+          df = df.dropna()
+
+          # Remove duplicate phone numbers, keeping the last occurrence
+          df = df.drop_duplicates(subset='phoneNumber', keep='last')
+
+
+          df.to_csv('FCC_data.csv', index=False)
+          EOF
+
+      - name: Commit and Push CSV
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update FCC number data"
+          file_pattern: "FCC_data.csv"
+          branch: us
+          repository: .
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
