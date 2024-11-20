@@ -62,7 +62,7 @@ jobs:
 
           df['label'] = 'Telemarketing'
           df['avatar'] = ''
-          df['isSubscribed'] = True
+          df['isSubscribed'] = 1
           df['count'] = ''
           df['url'] = ''
           df = df[['phoneNumber', 'label', 'name', 'avatar', 'isSubscribed', 'count', 'url']]
