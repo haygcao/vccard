@@ -32,21 +32,16 @@ jobs:
           import pandas as pd
           import re
           import phonenumbers
-          import csv  # 导入 csv 模块
 
-          # 读取 CSV 文件
           df = pd.read_csv('data.csv')
-
-          # 选择需要的列并重命名
           df = df[['business_name', 'contact_telephone_number']]
           df = df.rename(columns={'business_name': 'name', 'contact_telephone_number': 'phoneNumber'})
 
-          # 清理 phoneNumber 列
-          df['phoneNumber'] = df['phoneNumber'].astype(str).apply(lambda x: re.sub(r"^'+", "", x))  # 移除开头的单引号
-          df['phoneNumber'] = df['phoneNumber'].str.replace('.', '', regex=False)  # 移除点号
-          df['phoneNumber'] = df['phoneNumber'].str.strip()  # 移除首尾空格
+          df['phoneNumber'] = df['phoneNumber'].astype(str).apply(lambda x: re.sub(r"^'+", "", x))
+          df['phoneNumber'] = df['phoneNumber'].str.replace('.', '', regex=False)
+          df['phoneNumber'] = df['phoneNumber'].str.strip()
 
-          # 格式化电话号码
+
           def format_phone_number(number):
               try:
                   if number.startswith("+"):
@@ -63,23 +58,15 @@ jobs:
 
           df['phoneNumber'] = df['phoneNumber'].apply(format_phone_number)
 
-          # 过滤掉格式化后为空或无效的电话号码
-          df = df[df['phoneNumber'].notna() & (df['phoneNumber'] != '')]
+          df = df[df['phoneNumber'].notna() & (df['phoneNumber'] != '')]  # Filter after formatting
 
-          # 添加额外的列
           df['label'] = 'Telemarketing'
           df['avatar'] = ''
           df['isSubscribed'] = 1
           df['count'] = ''
           df['url'] = ''
           df = df[['phoneNumber', 'label', 'name', 'avatar', 'isSubscribed', 'count', 'url']]
-
-          # 使用 csv.writer 写入标准 CSV
-          with open('processed_data.csv', 'w', encoding='utf-8', newline='') as f:
-              writer = csv.writer(f, quoting=csv.QUOTE_ALL)
-              writer.writerow(df.columns)  # 写入列名
-              for index, row in df.iterrows():
-                  writer.writerow(row.tolist())  # 写入每一行数据
+          df.to_csv('processed_data.csv', index=False)
           EOF
 
       - name: Commit and Push CSV
@@ -95,26 +82,27 @@ jobs:
         run: |
           python <<EOF
           import pandas as pd
-          import csv  # 导入 csv 模块
+          import csv
 
-          # 读取处理后的 CSV 文件
           df = pd.read_csv('processed_data.csv')
 
-          # 移除 ""
+          # Remove ""
           df = df.replace('""', '', regex=False)
 
-          # 移除 phoneNumber 为空或 NaN 的行
+          # Remove rows where phoneNumber is empty or NaN *after* other processing
           df = df[df['phoneNumber'].notna() & (df['phoneNumber'] != '')]
 
-          # 移除重复的 phoneNumber，保留最后一个出现的
+          # Remove duplicate phone numbers, keeping the last occurrence
           df = df.groupby('phoneNumber').last().reset_index()
 
-          # 使用 csv.writer 写入标准 CSV
+          # Replace NaN values with empty strings
+          df = df.fillna('')
+
+          # Write to CSV using csv.writer and QUOTE_MINIMAL
           with open('FCC_data.csv', 'w', encoding='utf-8', newline='') as f:
-              writer = csv.writer(f, quoting=csv.QUOTE_ALL)
-              writer.writerow(df.columns)  # 写入列名
-              for index, row in df.iterrows():
-                  writer.writerow(row.tolist())  # 写入每一行数据
+              writer = csv.writer(f, quoting=csv.QUOTE_AL)
+              writer.writerow(df.columns)
+              writer.writerows(df.values)  # Use writerows for better performance
           EOF
 
       - name: Commit and Push CSV
