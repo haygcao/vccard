@@ -92,13 +92,13 @@ jobs:
           df = df[df['phoneNumber'].notna() & (df['phoneNumber'] != '')]
 
           # Remove duplicate phone numbers, keeping the last occurrence
-          df = df.groupby('phoneNumber').last().reset_index()
+          df = df.groupby('phoneNumber').last().reset_index() # 保持你原来的去重逻辑
 
-          # Replace NaN values with empty strings
+          # Fill NaN values (if any remain after previous steps)
           df = df.fillna('')
 
-          # Write to CSV without quotes, handling special characters
-          df.to_csv('FCC_data.csv', index=False, quoting=csv.QUOTE_NONE, escapechar='\\\\') # 正确的转义
+          # Write to CSV, handling special characters
+          df.to_csv('FCC_data.csv', index=False, escapechar='\\\\') # 使用 escapechar
           EOF
 
       - name: Commit and Push CSV
