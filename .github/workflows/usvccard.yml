@@ -82,7 +82,6 @@ jobs:
         run: |
           python <<EOF
           import pandas as pd
-          import csv
 
           df = pd.read_csv('processed_data.csv')
 
@@ -98,11 +97,8 @@ jobs:
           # Replace NaN values with empty strings
           df = df.fillna('')
 
-          # Write to CSV using csv.writer and QUOTE_MINIMAL
-          with open('FCC_data.csv', 'w', encoding='utf-8', newline='') as f:
-              writer = csv.writer(f, quoting=csv.QUOTE_ALL)
-              writer.writerow(df.columns)
-              writer.writerows(df.values)  # Use writerows for better performance
+          # Write to CSV without quotes, handling special characters
+          df.to_csv('FCC_data.csv', index=False, quoting=csv.QUOTE_NONE, escapechar='\\')
           EOF
 
       - name: Commit and Push CSV
