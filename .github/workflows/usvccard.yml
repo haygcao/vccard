@@ -98,7 +98,7 @@ jobs:
           df = df.fillna('')
 
           # Write to CSV without quotes, handling special characters
-          df.to_csv('FCC_data.csv', index=False, quoting=csv.QUOTE_NONE, escapechar='\\')
+          df.to_csv('FCC_data.csv', index=False, quoting=csv.QUOTE_NONE, escapechar='\\\\') # 正确的转义
           EOF
 
       - name: Commit and Push CSV
