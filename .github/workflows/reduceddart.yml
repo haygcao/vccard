@@ -179,12 +179,14 @@ jobs:
           def filter_and_reduce(csv_filepath):
               df = pd.read_csv(csv_filepath)
               df = df[df['phone'].astype(str).str.startswith('8619')]
+              # 在 groupby 之前计算 location_zh 和 location_en
+              df['location_zh'] = df['province'] + df['city']
+              df['location_en'] = df['location_zh'].apply(convert_to_pinyin)
               df['phone'] = df['phone'].astype(int)
-              reduced_df = df.groupby('city')['phone'].min().reset_index()
+
+              reduced_df = df.groupby('city').agg({'phone':'min','location_zh':'first','location_en':'first'}).reset_index()
               reduced_df['phone'] = '86' + reduced_df['phone'].astype(str).str[:-1]
-              reduced_df['location_zh'] = reduced_df['province'] + reduced_df['city']
-              reduced_df['location_en'] = reduced_df['location_zh'].apply(convert_to_pinyin) # apply pinyin conversion
-              reduced_df = reduced_df.drop(columns=['city', 'province'])
+              reduced_df = reduced_df.drop(columns=['city'])
               return reduced_df
 
           def generate_dart_files(df):
@@ -214,13 +216,11 @@ jobs:
           EOF
           python filter_reduce_phone.py
 
-
       - name: Commit and Push reduced dart
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update reduced Dart phone location maps"
-          # 更新 file_pattern 以包含英文文件
-          file_pattern: "lib/phone_location_*_reduced.dart" 
+          file_pattern: "lib/phone_location_*_reduced.dart"
           branch: dartnumber
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
