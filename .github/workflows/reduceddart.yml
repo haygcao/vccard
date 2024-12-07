@@ -185,30 +185,29 @@ jobs:
 
               reduced_data = []
               buffer = []
-              last_reduced_phone = None
 
               for index, row in df.iterrows():
                   current_phone = row['phone']
                   current_city = row['city']
+
+                  if buffer and (current_phone != buffer[-1]['phone'] + 1 or current_city != buffer[-1]['city']):
+                      reduced_data.extend(buffer)
+                      buffer = []
+
                   buffer.append(row)
 
                   if len(buffer) == 10:
                       cities = {r['city'] for r in buffer}
                       if len(cities) == 1:
                           first_row = buffer[0]
-                          reduced_phone = int(str(first_row['phone'])[:-1])
-                          reduced_data.append({'phone': reduced_phone, 'location_zh': first_row['location_zh'], 'location_en': first_row['location_en']})
-                          last_reduced_phone = reduced_phone
+                          reduced_data.append({'phone': int(str(first_row['phone'])[:-1]), 'location_zh': first_row['location_zh'], 'location_en': first_row['location_en']})
+                      else:
+                          reduced_data.extend(buffer)
                       buffer = []
 
-              for row in buffer:
-                  if row['phone'] // 10 != last_reduced_phone:
-                      reduced_data.append({'phone': row['phone'], 'location_zh': row['location_zh'], 'location_en': row['location_en']})
-
-              reduced_df = pd.DataFrame(reduced_data)
-              result_df = pd.concat([df, reduced_df])
-              result_df = result_df.drop_duplicates(subset=['phone'], keep='last').sort_values(by=['phone'])
-              return result_df
+              reduced_data.extend(buffer)
+              reduced_df = pd.DataFrame(reduced_data).sort_values(by=['phone'])              
+              return reduced_df
 
           def generate_reduced_dart_files(df):
               zh_reduced_map = dict(zip(df['phone'], df['location_zh']))
