@@ -181,9 +181,30 @@ jobs:
               df['location_zh'] = df['province'] + df['city']
               df['location_en'] = df['location_zh'].apply(convert_to_pinyin)
               df['phone'] = df['phone'].astype(int)
-              reduced_df = df.groupby('city').agg({'phone': 'min', 'location_zh': 'first', 'location_en': 'first'}).reset_index()
-              reduced_df['phone'] = reduced_df['phone'].astype(str).str[:-1].astype(int)
-              reduced_df = reduced_df.drop(columns=['city'])
+              df = df.sort_values(by=['phone'])
+
+              reduced_data = []
+              buffer = []
+
+              for index, row in df.iterrows():
+                  current_phone = row['phone']
+                  current_city = row['city']
+                  buffer.append(row)
+
+                  if len(buffer) == 10:
+                      cities = {r['city'] for r in buffer}
+                      if len(cities) == 1:
+                          first_row = buffer[0]
+                          reduced_data.append({'phone': int(str(first_row['phone'])[:-1]), 'location_zh': first_row['location_zh'], 'location_en': first_row['location_en']})
+                      else:
+                         for i in range(len(buffer)-1):
+                              reduced_data.append({'phone':buffer[i]['phone'], 'location_zh':buffer[i]['location_zh'],'location_en':buffer[i]['location_en']})
+                      buffer = [row]
+
+              for row in buffer:
+                  reduced_data.append({'phone': row['phone'], 'location_zh': row['location_zh'], 'location_en': row['location_en']})
+
+              reduced_df = pd.DataFrame(reduced_data)
               return reduced_df
 
           def generate_reduced_dart_files(df):
@@ -210,7 +231,7 @@ jobs:
               reduced_df = filter_and_reduce('phone_location_processed.csv')
               generate_reduced_dart_files(reduced_df)
           EOF
-          python reduce_phone_data.py      
+          python reduce_phone_data.py
 
       - name: Commit and Push Reduced Dart files
         uses: stefanzweifel/git-auto-commit-action@v5
