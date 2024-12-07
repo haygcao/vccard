@@ -1,0 +1,226 @@
+name: Convert SQL to CSV Generate reduced Dart Phone Location Maps
+
+on:
+  workflow_dispatch: # Run manually or schedule separately
+  schedule:
+     - cron: '0 12 1 * *' # Example schedule - adjust as needed
+  
+permissions:
+  contents: write
+
+jobs:
+  convert-sql:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: dartnumber  # Or the branch where you want to store the CSV
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install pandas and requests
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pypinyin pandas
+
+      - name: Download SQL and Convert to CSV
+        run: |
+          cat > convert_sql_to_csv.py << 'EOF'
+          import requests
+          import pandas as pd
+          import csv
+
+          def download_sql():
+              url = "https://github.com/dannyhu926/phone_location/raw/refs/heads/master/mysql/phone_location.sql"
+              response = requests.get(url)
+              response.raise_for_status()
+              return response.text
+
+          def convert_to_csv(sql_content, csv_filepath):
+              insert_statements = [line for line in sql_content.splitlines() if line.startswith("INSERT INTO `phone_location`")]
+              data = []
+              for statement in insert_statements:
+                  values_str = statement[statement.find("VALUES") + len("VALUES"):].strip()
+                  values = []
+                  in_quote = False
+                  current_value = ""
+                  for char in values_str:
+                      if char == "'":
+                          in_quote = not in_quote
+                      elif char == "," and not in_quote:
+                          values.append(current_value.strip("'"))
+                          current_value = ""
+                      elif in_quote:
+                          current_value += char
+                  values.append(current_value.strip("'"))
+                  data.append(values[1:5])  #Extract only pref, phone, province, city
+
+              df = pd.DataFrame(data, columns=['pref', 'phone', 'province', 'city'])
+              df.to_csv(csv_filepath, index=False, quoting=csv.QUOTE_NONNUMERIC) #  No "86" prepending here
+
+
+          if __name__ == "__main__":
+              sql_content = download_sql()
+              convert_to_csv(sql_content, 'phone_location.csv')
+
+          EOF
+          python convert_sql_to_csv.py
+
+      - name: Commit and Push CSV
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update processed FCC data"
+          file_pattern: "phone_location.csv"
+          branch: dartnumber
+          repository: .
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
+
+
+
+      - name: Stage 2 Preprocess CSV
+        run: |
+          cat > preprocess_csv.py << 'EOF'
+          import pandas as pd
+          import csv
+
+          df = pd.read_csv('phone_location.csv')
+          df = df.drop(columns=['pref'])  # Remove the 'pref' column
+          df['phone'] = '86' + df['phone'].astype(str).str.replace("'", "")
+          df['province'] = df['province'].str.replace("'", "")
+          df['city'] = df['city'].str.replace("'", "")
+          df.to_csv('phone_location_processed.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
+
+          EOF
+          python preprocess_csv.py
+
+      - name: Stage 3 Generate Dart files
+        run: |
+          cat > generate_dart.py << 'EOF'
+          import csv
+          from pypinyin import lazy_pinyin, Style
+          import os
+
+          def convert_to_pinyin(province, city):
+              p = ''.join(lazy_pinyin(province, style=Style.NORMAL))
+              c = ''.join(lazy_pinyin(city, style=Style.NORMAL))
+              return f"{c.title()}, {p.title()}"
+
+          def process_csv_data(csv_filepath):
+              zh_map = {}
+              en_map = {}
+              with open(csv_filepath, 'r', encoding='utf-8') as csvfile:
+                  reader = csv.DictReader(csvfile)
+                  for row in reader:
+                      phone = row.get('phone')
+                      province = row.get('province')
+                      city = row.get('city')
+
+                      if phone and province and city:
+                          try:
+                              phone_key = int(phone)
+                          except ValueError as e:
+                              print(f"Skipping record due to invalid phone: {phone}, error: {e}")
+                              continue
+
+                          zh_map[phone_key] = f"{province}{city}"
+                          en_map[phone_key] = convert_to_pinyin(province, city)
+
+              print(f"Processed {len(zh_map)} records")
+              return zh_map, en_map
+
+          def generate_dart_files(zh_map, en_map):
+              os.makedirs('lib', exist_ok=True)
+
+              with open('lib/phone_location_zh.dart', 'w', encoding='utf-8') as f:
+                  f.write('// Generated by GitHub Actions\n')
+                  f.write('// Source: https://github.com/dannyhu926/phone_location\n\n')
+                  f.write('Map<int, String> get86_zh() {\n  return {\n')
+                  for phone, location in zh_map.items():
+                      f.write(f'    {phone}: "{location}",\n')
+                  f.write('  };\n}\n')
+
+              with open('lib/phone_location_en.dart', 'w', encoding='utf-8') as f:
+                  f.write('// Generated by GitHub Actions\n')
+                  f.write('// Source: https://github.com/dannyhu926/phone_location\n\n')
+                  f.write('Map<int, String> get86_en() {\n  return {\n')
+                  for phone, location in en_map.items():
+                      f.write(f'  {phone}: "{location}",\n')
+                  f.write('  };\n}\n')
+
+          if __name__ == "__main__":
+              zh_map, en_map = process_csv_data('phone_location_processed.csv')
+              generate_dart_files(zh_map, en_map)
+
+          EOF
+          python generate_dart.py
+
+      - name: Commit and Push dart
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update Dart phone location maps"
+          file_pattern: "lib/phone_location_*.dart"
+          branch: dartnumber
+          repository: .
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
+
+      - name: Stage 4 Filter and Reduce Phone Numbers
+        run: |
+          cat > filter_reduce_phone.py << 'EOF'
+          import pandas as pd
+          import csv
+          from pypinyin import lazy_pinyin, Style
+
+          def convert_to_pinyin(location):
+              return ''.join(lazy_pinyin(location, style=Style.NORMAL)).title()
+
+          def filter_and_reduce(csv_filepath):
+              df = pd.read_csv(csv_filepath)
+              df = df[df['phone'].astype(str).str.startswith('8619')]
+              df['phone'] = df['phone'].astype(int)
+              reduced_df = df.groupby('city')['phone'].min().reset_index()
+              reduced_df['phone'] = '86' + reduced_df['phone'].astype(str).str[:-1]
+              reduced_df['location_zh'] = reduced_df['province'] + reduced_df['city']
+              reduced_df['location_en'] = reduced_df['location_zh'].apply(convert_to_pinyin) # apply pinyin conversion
+              reduced_df = reduced_df.drop(columns=['city', 'province'])
+              return reduced_df
+
+          def generate_dart_files(df):
+              zh_map = dict(zip(df['phone'].astype(int), df['location_zh']))
+              en_map = dict(zip(df['phone'].astype(int), df['location_en']))
+
+              with open('lib/phone_location_zh_reduced.dart', 'w', encoding='utf-8') as f:
+                  f.write('// Generated by GitHub Actions\n')
+                  f.write('// Source: https://github.com/dannyhu926/phone_location\n\n')
+                  f.write('Map<int, String> get86_zh_reduced() {\n  return {\n')
+                  for phone, location in zh_map.items():
+                       f.write(f'    {phone}: "{location}",\n')
+                  f.write('  };\n}\n')
+
+              with open('lib/phone_location_en_reduced.dart', 'w', encoding='utf-8') as f:
+                  f.write('// Generated by GitHub Actions\n')
+                  f.write('// Source: https://github.com/dannyhu926/phone_location\n\n')
+                  f.write('Map<int, String> get86_en_reduced() {\n  return {\n')
+                  for phone, location in en_map.items():
+                       f.write(f'    {phone}: "{location}",\n')
+                  f.write('  };\n}\n')
+
+          if __name__ == "__main__":
+              reduced_df = filter_and_reduce('phone_location_processed.csv')
+              generate_dart_files(reduced_df)
+
+          EOF
+          python filter_reduce_phone.py
+
+
+      - name: Commit and Push reduced dart
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update reduced Dart phone location maps"
+          # 更新 file_pattern 以包含英文文件
+          file_pattern: "lib/phone_location_*_reduced.dart" 
+          branch: dartnumber
+          repository: .
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
