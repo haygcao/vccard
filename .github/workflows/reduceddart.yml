@@ -175,41 +175,36 @@ jobs:
           def convert_to_pinyin(location):
               return ''.join(lazy_pinyin(location, style=Style.NORMAL)).title()
 
-          def filter_and_reduce(csv_filepath):
+          def filter_and_reduce(csv_filepath, output_filepath):
               df = pd.read_csv(csv_filepath)
               df = df[df['phone'].astype(str).str.startswith('8619')]
-              df['location_zh'] = df['province'] + df['city']
-              df['location_en'] = df['location_zh'].apply(convert_to_pinyin)
-              df['phone'] = df['phone'].astype(int)
-              df = df.sort_values(by=['phone'])
+              df = df.sort_values(by=['phone']).reset_index(drop=True)
 
               reduced_data = []
-              buffer = []
+              i = 0
+              while i <= len(df) - 10:
+                  chunk = df.iloc[i:i + 10]
+                  if (chunk['phone'].diff()[1:].astype(int).tolist() == [1]*9 and
+                      len(chunk['city'].unique()) == 1 and
+                      {int(str(row['phone'])[-1]) for _, row in chunk.iterrows()} == set(range(10))):
+                      first_row = chunk.iloc[0]
+                      reduced_data.append({'phone': int(str(first_row['phone'])[:-1]), 'province': first_row['province'], 'city': first_row['city']})
+                      i += 10
+                  else:
+                      reduced_data.append({'phone': df.iloc[i]['phone'], 'province': df.iloc[i]['province'], 'city':df.iloc[i]['city']})
+                      i += 1
 
-              for index, row in df.iterrows():
-                  current_phone = row['phone']
-                  current_city = row['city']
+              while i < len(df):
+                  reduced_data.append({'phone': df.iloc[i]['phone'], 'province': df.iloc[i]['province'], 'city':df.iloc[i]['city']})
+                  i += 1
 
-                  if buffer and (current_phone != buffer[-1]['phone'] + 1 or current_city != buffer[-1]['city']):
-                      reduced_data.extend(buffer)
-                      buffer = []
-
-                  buffer.append(row)
-
-                  if len(buffer) == 10:
-                      cities = {r['city'] for r in buffer}
-                      if len(cities) == 1:
-                          first_row = buffer[0]
-                          reduced_data.append({'phone': int(str(first_row['phone'])[:-1]), 'location_zh': first_row['location_zh'], 'location_en': first_row['location_en']})
-                      else:
-                          reduced_data.extend(buffer)
-                      buffer = []
-
-              reduced_data.extend(buffer)
-              reduced_df = pd.DataFrame(reduced_data).sort_values(by=['phone'])              
+              reduced_df = pd.DataFrame(reduced_data)
+              reduced_df.to_csv(output_filepath, index=False, quoting=1)
               return reduced_df
 
           def generate_reduced_dart_files(df):
+              df['location_zh'] = df['province'] + df['city']
+              df['location_en'] = df['location_zh'].apply(convert_to_pinyin)
               zh_reduced_map = dict(zip(df['phone'], df['location_zh']))
               en_reduced_map = dict(zip(df['phone'], df['location_en']))
 
@@ -230,7 +225,7 @@ jobs:
                   f.write('  };\n}\n')
 
           if __name__ == "__main__":
-              reduced_df = filter_and_reduce('phone_location_processed.csv')
+              reduced_df = filter_and_reduce('phone_location_processed.csv', 'phone_location_reduced.csv')
               generate_reduced_dart_files(reduced_df)
           EOF
           python reduce_phone_data.py
@@ -239,7 +234,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update reduced Dart phone location maps"
-          file_pattern: "lib/phone_location_*_reduced.dart"
+          file_pattern: "lib/phone_location_*_reduced.dart phone_location_reduced.csv"
           branch: dartnumber
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
