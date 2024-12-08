@@ -164,69 +164,51 @@ jobs:
               c = ''.join(lazy_pinyin(city, style=Style.NORMAL))
               return f"{c.title()}, {p.title()}"
 
-          def optimize_phone_ranges(input_file):
-              # 读取处理后的CSV文件
-              df = pd.read_csv(input_file)
-              
-              # 将电话号码转换为字符串并按前缀分组
+          def optimize_phone_ranges(df):
               optimized_zh = {}
               optimized_en = {}
-              
-              # 创建一个临时字典来存储所有号码
-              all_numbers = {}
-              for _, row in df.iterrows():
-                  phone = str(row['phone'])
-                  all_numbers[phone] = {
-                      'province': row['province'],
-                      'city': row['city']
-                  }
-              
-              # 检查所有可能的前缀长度
               processed_numbers = set()
-              for prefix_length in range(8, 6, -1):  # 从长到短检查前缀 7位 8位
-                  # 按前缀分组处理数据
-                  prefix_groups = defaultdict(list)
-                  
-                  # 只处理还未被处理的号码
-                  remaining_numbers = {k: v for k, v in all_numbers.items() if k not in processed_numbers}
-                  
-                  for phone, info in remaining_numbers.items():
-                      if len(phone) >= prefix_length:
-                          prefix = phone[:prefix_length]
-                          prefix_groups[prefix].append({
-                              'phone': phone,
-                              'province': info['province'],
-                              'city': info['city']
-                          })
-                  
-                  # 检查每组是否可以优化
-                  for prefix, numbers in prefix_groups.items():
-                      if len(numbers) == 10:  # 确保有0-9的完整序列
-                          # 检查末尾是否是0-9序列
-                          phones = sorted(n['phone'] for n in numbers)
-                           #优化：检查号码是否连续
-                          if all(int(phones[i]) == int(phones[0]) + i for i in range(10)):
 
-                            # 检查所有记录的城市是否相同
+              def process_round(data):
+                  nonlocal processed_numbers
+                  prefix_groups = defaultdict(list)
+
+                  for _, row in data.iterrows():
+                      phone = str(row['phone'])
+                      if phone not in processed_numbers:
+                          prefix = phone[:-1]  # 使用号码除最后一位作为前缀
+                          prefix_groups[prefix].append(row)
+
+                  for prefix, numbers in prefix_groups.items():
+                      if len(numbers) == 10:
+                          phones = sorted([str(n['phone']) for n in numbers])
+                          # 检查号码是否以 0-9 结尾
+                          if all(p[-1] == str(i) for i, p in enumerate(phones)):
                               first_city = numbers[0]['city']
                               first_province = numbers[0]['province']
-                              all_same = all(n['city'] == first_city and n['province'] == first_province for n in numbers)
-
-                              if all_same:
-                                  # 如果所有记录都指向相同的城市，只保存前缀
+                              if all(n['city'] == first_city and n['province'] == first_province for n in numbers):
                                   prefix_int = int(prefix)
                                   optimized_zh[prefix_int] = f"{first_province}{first_city}"
                                   optimized_en[prefix_int] = convert_to_pinyin(first_province, first_city)
-                                  # 标记这些号码已处理
                                   for n in numbers:
-                                      processed_numbers.add(n['phone'])
-              
+                                      processed_numbers.add(str(n['phone']))
+
+                  remaining_data = data[~data['phone'].astype(str).isin(processed_numbers)]
+                  return remaining_data
+
+              # 第一轮处理
+              remaining_data = process_round(df.copy())
+
+              # 第二轮处理，针对剩余数据再次进行合并
+              process_round(remaining_data)
+
               # 处理剩余未优化的号码
-              for phone, info in all_numbers.items():
+              for _, row in df.iterrows():
+                  phone = str(row['phone'])
                   if phone not in processed_numbers:
-                      optimized_zh[int(phone)] = f"{info['province']}{info['city']}"
-                      optimized_en[int(phone)] = convert_to_pinyin(info['province'], info['city'])
-              
+                      optimized_zh[int(phone)] = f"{row['province']}{row['city']}"
+                      optimized_en[int(phone)] = convert_to_pinyin(row['province'], row['city'])
+
               return optimized_zh, optimized_en
 
           def generate_optimized_dart_files(optimized_zh, optimized_en):
@@ -245,13 +227,14 @@ jobs:
                   f.write('// Source: https://github.com/dannyhu926/phone_location\n\n')
                   f.write('Map<int, String> get86_en_optimized() {\n  return {\n')
                   for phone, location in sorted(optimized_en.items()):
-                       f.write(f'    {phone}: "{location}",\n')
+                      f.write(f'    {phone}: "{location}",\n')
                   f.write('  };\n}\n')
 
           if __name__ == "__main__":
-              optimized_zh, optimized_en = optimize_phone_ranges('phone_location_processed.csv')
+              df = pd.read_csv('phone_location_processed.csv')
+              optimized_zh, optimized_en = optimize_phone_ranges(df)
               generate_optimized_dart_files(optimized_zh, optimized_en)
-          EOF          
+          EOF
           python optimize_ranges.py
 
       - name: Commit and Push dart
