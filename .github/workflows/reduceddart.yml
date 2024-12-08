@@ -1,9 +1,9 @@
 name: Convert SQL to CSV Generate reduced Dart Phone Location Maps
 
 on:
-  workflow_dispatch: # Run manually or schedule separately
+  workflow_dispatch:
   schedule:
-     - cron: '0 12 1 * *' # Example schedule - adjust as needed
+     - cron: '0 12 1 * *'
   
 permissions:
   contents: write
@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: dartnumber  # Or the branch where you want to store the CSV
+          ref: dartnumber
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -56,16 +56,14 @@ jobs:
                       elif in_quote:
                           current_value += char
                   values.append(current_value.strip("'"))
-                  data.append(values[1:5])  #Extract only pref, phone, province, city
+                  data.append(values[1:5])
 
               df = pd.DataFrame(data, columns=['pref', 'phone', 'province', 'city'])
-              df.to_csv(csv_filepath, index=False, quoting=csv.QUOTE_NONNUMERIC) #  No "86" prepending here
-
+              df.to_csv(csv_filepath, index=False, quoting=csv.QUOTE_NONNUMERIC)
 
           if __name__ == "__main__":
               sql_content = download_sql()
               convert_to_csv(sql_content, 'phone_location.csv')
-
           EOF
           python convert_sql_to_csv.py
 
@@ -78,8 +76,6 @@ jobs:
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
 
-
-
       - name: Stage 2 Preprocess CSV
         run: |
           cat > preprocess_csv.py << 'EOF'
@@ -87,12 +83,11 @@ jobs:
           import csv
 
           df = pd.read_csv('phone_location.csv')
-          df = df.drop(columns=['pref'])  # Remove the 'pref' column
+          df = df.drop(columns=['pref'])
           df['phone'] = '86' + df['phone'].astype(str).str.replace("'", "")
           df['province'] = df['province'].str.replace("'", "")
           df['city'] = df['city'].str.replace("'", "")
           df.to_csv('phone_location_processed.csv', index=False, quoting=csv.QUOTE_NONNUMERIC)
-
           EOF
           python preprocess_csv.py
 
@@ -128,7 +123,6 @@ jobs:
                           zh_map[phone_key] = f"{province}{city}"
                           en_map[phone_key] = convert_to_pinyin(province, city)
 
-              print(f"Processed {len(zh_map)} records")
               return zh_map, en_map
 
           def generate_dart_files(zh_map, en_map):
@@ -147,94 +141,83 @@ jobs:
                   f.write('// Source: https://github.com/dannyhu926/phone_location\n\n')
                   f.write('Map<int, String> get86_en() {\n  return {\n')
                   for phone, location in en_map.items():
-                      f.write(f'  {phone}: "{location}",\n')
+                      f.write(f'    {phone}: "{location}",\n')
                   f.write('  };\n}\n')
 
           if __name__ == "__main__":
               zh_map, en_map = process_csv_data('phone_location_processed.csv')
               generate_dart_files(zh_map, en_map)
-
           EOF
           python generate_dart.py
 
-      - name: Commit and Push dart
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Update Dart phone location maps"
-          file_pattern: "lib/phone_location_*.dart"
-          branch: dartnumber
-          repository: .
-          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
-
-      - name: Stage 4 Filter and Reduce Phone Numbers
+      - name: Stage 4 Optimize Phone Ranges
         run: |
-          cat > reduce_phone_data.py << 'EOF'
+          cat > optimize_ranges.py << 'EOF'
           import pandas as pd
-          from pypinyin import lazy_pinyin, Style
+          import csv
+          from collections import defaultdict
 
-          def convert_to_pinyin(location):
-              return ''.join(lazy_pinyin(location, style=Style.NORMAL)).title()
-
-          def filter_and_reduce(csv_filepath, output_filepath):
-              df = pd.read_csv(csv_filepath)
-              df = df[df['phone'].astype(str).str.startswith('8619')]
-              df = df.sort_values(by=['phone']).reset_index(drop=True)
-
-              reduced_data = []
-              i = 0
-              while i <= len(df) - 10:
-                  chunk = df.iloc[i:i + 10]
-                  if (chunk['phone'].diff()[1:].astype(int).tolist() == [1]*9 and
-                      len(chunk['city'].unique()) == 1 and
-                      {int(str(row['phone'])[-1]) for _, row in chunk.iterrows()} == set(range(10))):
-                      first_row = chunk.iloc[0]
-                      reduced_data.append({'phone': int(str(first_row['phone'])[:-1]), 'province': first_row['province'], 'city': first_row['city']})
-                      i += 10
+          def optimize_phone_ranges(input_file):
+              # 读取处理后的CSV文件
+              df = pd.read_csv(input_file)
+              
+              # 将电话号码转换为字符串并按前缀分组
+              optimized_zh = {}
+              optimized_en = {}
+              
+              # 按前缀分组处理数据
+              prefix_groups = defaultdict(list)
+              for _, row in df.iterrows():
+                  phone = str(row['phone'])
+                  prefix = phone[:-1]  # 取除最后一位外的所有数字
+                  prefix_groups[prefix].append({
+                      'phone': phone,
+                      'province': row['province'],
+                      'city': row['city']
+                  })
+              
+              # 检查每组是否可以优化
+              for prefix, numbers in prefix_groups.items():
+                  if len(numbers) == 10:  # 确保有0-9的完整序列
+                      # 检查所有记录的城市是否相同
+                      first_city = numbers[0]['city']
+                      first_province = numbers[0]['province']
+                      all_same = all(n['city'] == first_city and n['province'] == first_province for n in numbers)
+                      
+                      if all_same:
+                          # 如果所有记录都指向相同的城市，只保存前缀
+                          optimized_zh[int(prefix)] = f"{first_province}{first_city}"
+                      else:
+                          # 如果不同，保留完整号码
+                          for n in numbers:
+                              optimized_zh[int(n['phone'])] = f"{n['province']}{n['city']}"
                   else:
-                      reduced_data.append({'phone': df.iloc[i]['phone'], 'province': df.iloc[i]['province'], 'city':df.iloc[i]['city']})
-                      i += 1
+                      # 如果不是完整的0-9序列，保留原始记录
+                      for n in numbers:
+                          optimized_zh[int(n['phone'])] = f"{n['province']}{n['city']}"
+              
+              return optimized_zh
 
-              while i < len(df):
-                  reduced_data.append({'phone': df.iloc[i]['phone'], 'province': df.iloc[i]['province'], 'city':df.iloc[i]['city']})
-                  i += 1
-
-              reduced_df = pd.DataFrame(reduced_data)
-              reduced_df.to_csv(output_filepath, index=False, quoting=1)
-              return reduced_df
-
-          def generate_reduced_dart_files(df):
-              df['location_zh'] = df['province'] + df['city']
-              df['location_en'] = df['location_zh'].apply(convert_to_pinyin)
-              zh_reduced_map = dict(zip(df['phone'], df['location_zh']))
-              en_reduced_map = dict(zip(df['phone'], df['location_en']))
-
-              with open('lib/phone_location_zh_reduced.dart', 'w', encoding='utf-8') as f:
-                  f.write('// Generated by GitHub Actions\n')
+          def generate_optimized_dart_file(optimized_map):
+              with open('lib/phone_location_zh_optimized.dart', 'w', encoding='utf-8') as f:
+                  f.write('// Generated by GitHub Actions - Optimized Version\n')
                   f.write('// Source: https://github.com/dannyhu926/phone_location\n\n')
-                  f.write('Map<int, String> get86_zh_reduced() {\n  return {\n')
-                  for phone, location in zh_reduced_map.items():
-                      f.write(f'    {phone}: "{location}",\n')
-                  f.write('  };\n}\n')
-
-              with open('lib/phone_location_en_reduced.dart', 'w', encoding='utf-8') as f:
-                  f.write('// Generated by GitHub Actions\n')
-                  f.write('// Source: https://github.com/dannyhu926/phone_location\n\n')
-                  f.write('Map<int, String> get86_en_reduced() {\n  return {\n')
-                  for phone, location in en_reduced_map.items():
+                  f.write('Map<int, String> get86_zh_optimized() {\n  return {\n')
+                  for phone, location in sorted(optimized_map.items()):
                       f.write(f'    {phone}: "{location}",\n')
                   f.write('  };\n}\n')
 
           if __name__ == "__main__":
-              reduced_df = filter_and_reduce('phone_location_processed.csv', 'phone_location_reduced.csv')
-              generate_reduced_dart_files(reduced_df)
+              optimized_zh = optimize_phone_ranges('phone_location_processed.csv')
+              generate_optimized_dart_file(optimized_zh)
           EOF
-          python reduce_phone_data.py
+          python optimize_ranges.py
 
-      - name: Commit and Push Reduced Dart files
+      - name: Commit and Push dart
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update reduced Dart phone location maps"
-          file_pattern: "lib/phone_location_*_reduced.dart phone_location_reduced.csv"
+          commit_message: "Update Dart phone location maps with optimized version"
+          file_pattern: "lib/phone_location_*.dart"
           branch: dartnumber
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
