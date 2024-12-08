@@ -266,10 +266,10 @@ jobs:
             python optimize_ranges.py
 
       - name: Commit and Push dart
-         uses: stefanzweifel/git-auto-commit-action@v5
-         with:
-           commit_message: "Update Dart phone location maps with optimized version"
-           file_pattern: "lib/phone_location_*.dart"
-           branch: dartnumber
-           repository: .
-           token: ${{ secrets.YOUR_GITHUB_TOKEN }}  
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update Dart phone location maps with optimized version"
+          file_pattern: "lib/phone_location_*.dart"
+          branch: dartnumber
+          repository: .
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
