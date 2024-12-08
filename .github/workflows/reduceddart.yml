@@ -222,7 +222,7 @@ jobs:
               # 第二轮处理
               second_round = process_csv(temp_csv)
               optimized_zh = {}
-               optimized_en = {}
+              optimized_en = {}
 
               for item in second_round:
                   phone = item['phone']
