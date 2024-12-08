@@ -152,7 +152,7 @@ jobs:
 
 
 
-- name: Stage 4 Optimize Phone Ranges
+      - name: Stage 4 Optimize Phone Ranges
         run: |
           cat > optimize_ranges.py << 'EOF'
           import pandas as pd
