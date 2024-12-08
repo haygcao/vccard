@@ -215,12 +215,13 @@ jobs:
               temp_df.to_csv(temp_csv, index=False)
               second_round = process_csv(temp_csv)
               
-              # Convert to DataFrame to maintain order
               final_df = pd.DataFrame(second_round)
+              final_csv = 'final_processed.csv'  # 保存最终处理后的CSV
+              final_df.to_csv(final_csv, index=False)
+              
               optimized_zh = {}
               optimized_en = {}
 
-              # Use DataFrame iteration to maintain order
               for _, row in final_df.iterrows():
                   phone = row['phone']
                   optimized_zh[phone] = f"{row['province']}{row['city']}"
@@ -294,8 +295,8 @@ jobs:
                   f.write('  };\n}\n')
 
           def main():
-              # Read the processed CSV file
-              df = pd.read_csv('phone_location_processed.csv')
+              # 使用步骤4中经过两轮处理后的最终CSV文件
+              df = pd.read_csv('final_processed.csv')
               
               # Process each mobile prefix
               prefixes = ['8613', '8615', '8617', '8618', '8619']
