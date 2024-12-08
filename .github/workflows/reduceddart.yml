@@ -164,55 +164,84 @@ jobs:
               c = ''.join(lazy_pinyin(city, style=Style.NORMAL))
               return f"{c.title()}, {p.title()}"
 
-          def optimize_phone_ranges(df):
-              optimized_zh = {}
-              optimized_en = {}
-              processed_numbers = set()
+          def find_consecutive_ranges(numbers):
+              """查找末尾0-9连续且地址相同的号码组"""
+              groups = defaultdict(list)
+              for num in numbers:
+                  prefix = num[:-1]
+                  groups[prefix].append(num)
 
-              def process_round(data):
-                  nonlocal processed_numbers
-                  prefix_groups = defaultdict(list)
+              consecutive_groups = []
+              for prefix, group in groups.items():
+                  if len(group) == 10:
+                      sorted_group = sorted(group)
+                      if all(n[-1] == str(i) for i, n in enumerate(sorted_group)):
+                          consecutive_groups.append(sorted_group)
+              return consecutive_groups
 
-                  for _, row in data.iterrows():
-                      phone = str(row['phone'])
-                      if phone not in processed_numbers:
-                          prefix = phone[:-1]  # 使用号码除最后一位作为前缀
-                          prefix_groups[prefix].append(row)
-
-                  for prefix, numbers in prefix_groups.items():
-                      if len(numbers) == 10:
-                          phones = sorted([str(n['phone']) for n in numbers])
-                          # 检查号码是否以 0-9 结尾
-                          if all(p[-1] == str(i) for i, p in enumerate(phones)):
-                              first_city = numbers[0]['city']
-                              first_province = numbers[0]['province']
-                              if all(n['city'] == first_city and n['province'] == first_province for n in numbers):
-                                  prefix_int = int(prefix)
-                                  optimized_zh[prefix_int] = f"{first_province}{first_city}"
-                                  optimized_en[prefix_int] = convert_to_pinyin(first_province, first_city)
-                                  for n in numbers:
-                                      processed_numbers.add(str(n['phone']))
-
-                  remaining_data = data[~data['phone'].astype(str).isin(processed_numbers)]
-                  return remaining_data
-
-              # 第一轮处理
-              remaining_data = process_round(df.copy())
-
-              # 第二轮处理，针对剩余数据再次进行合并
-              process_round(remaining_data)
-
-              # 处理剩余未优化的号码
+          def optimize_phone_ranges(input_file):
+              # 第一轮：读取CSV
+              df = pd.read_csv(input_file)
+              phone_dict = {}
               for _, row in df.iterrows():
                   phone = str(row['phone'])
-                  if phone not in processed_numbers:
-                      optimized_zh[int(phone)] = f"{row['province']}{row['city']}"
-                      optimized_en[int(phone)] = convert_to_pinyin(row['province'], row['city'])
+                  phone_dict[phone] = {'province': row['province'], 'city': row['city']}
+
+              # 第一轮：处理连续范围
+              processed = set()
+              optimized = {}
+              number_groups = defaultdict(list)
+              for phone in phone_dict.keys():
+                  info = phone_dict[phone]
+                  number_groups[f"{info['province']}{info['city']}"].append(phone)
+
+              for location, numbers in number_groups.items():
+                  consecutive_groups = find_consecutive_ranges(numbers)
+                  for group in consecutive_groups:
+                      prefix = group[0][:-1]
+                      if all(phone_dict[num]['province'] + phone_dict[num]['city'] == location for num in group):
+                          optimized[int(prefix)] = phone_dict[group[0]]
+                          processed.update(group)
+
+              # 保存第一轮结果到临时字典
+              temp_dict = {}
+              for prefix, info in optimized.items():
+                  temp_dict[str(prefix)] = info
+              for phone, info in phone_dict.items():
+                  if phone not in processed:
+                      temp_dict[phone] = info
+
+             # 第二轮：对第一轮结果再次处理
+              processed = set()
+              final_optimized = {}
+              number_groups = defaultdict(list)
+               for phone in temp_dict.keys():
+                  info = temp_dict[phone]
+                   number_groups[f"{info['province']}{info['city']}"].append(phone)
+
+              for location, numbers in number_groups.items():
+                  consecutive_groups = find_consecutive_ranges(numbers)
+                  for group in consecutive_groups:
+                      prefix = group[0][:-1]
+                      if all(temp_dict[num]['province'] + temp_dict[num]['city'] == location for num in group):
+                          final_optimized[int(prefix)] = temp_dict[group[0]]
+                          processed.update(group)
+
+              for phone, info in temp_dict.items():
+                  if phone not in processed:
+                      final_optimized[int(phone)] = info
+
+              optimized_zh = {}
+              optimized_en = {}
+              for phone, info in final_optimized.items():
+                  optimized_zh[phone] = f"{info['province']}{info['city']}"
+                  optimized_en[phone] = convert_to_pinyin(info['province'], info['city'])
 
               return optimized_zh, optimized_en
 
+
           def generate_optimized_dart_files(optimized_zh, optimized_en):
-              # 生成优化后的中文版本
+                # 生成优化后的中文版本
               with open('lib/phone_location_zh_optimized.dart', 'w', encoding='utf-8') as f:
                   f.write('// Generated by GitHub Actions - Optimized Version\n')
                   f.write('// Source: https://github.com/dannyhu926/phone_location\n\n')
@@ -223,25 +252,24 @@ jobs:
 
               # 生成优化后的拼音版本
               with open('lib/phone_location_en_optimized.dart', 'w', encoding='utf-8') as f:
-                  f.write('// Generated by GitHub Actions - Optimized Version\n')
-                  f.write('// Source: https://github.com/dannyhu926/phone_location\n\n')
-                  f.write('Map<int, String> get86_en_optimized() {\n  return {\n')
-                  for phone, location in sorted(optimized_en.items()):
-                      f.write(f'    {phone}: "{location}",\n')
-                  f.write('  };\n}\n')
+                 f.write('// Generated by GitHub Actions - Optimized Version\n')
+                 f.write('// Source: https://github.com/dannyhu926/phone_location\n\n')
+                 f.write('Map<int, String> get86_en_optimized() {\n  return {\n')
+                 for phone, location in sorted(optimized_en.items()):
+                    f.write(f'    {phone}: "{location}",\n')
+                 f.write(' };\n}\n')
 
           if __name__ == "__main__":
-              df = pd.read_csv('phone_location_processed.csv')
-              optimized_zh, optimized_en = optimize_phone_ranges(df)
-              generate_optimized_dart_files(optimized_zh, optimized_en)
-          EOF
-          python optimize_ranges.py
+               optimized_zh, optimized_en = optimize_phone_ranges('phone_location_processed.csv')
+               generate_optimized_dart_files(optimized_zh, optimized_en)
+           EOF
+            python optimize_ranges.py
 
       - name: Commit and Push dart
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Update Dart phone location maps with optimized version"
-          file_pattern: "lib/phone_location_*.dart"
-          branch: dartnumber
-          repository: .
-          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
+         uses: stefanzweifel/git-auto-commit-action@v5
+         with:
+           commit_message: "Update Dart phone location maps with optimized version"
+           file_pattern: "lib/phone_location_*.dart"
+           branch: dartnumber
+           repository: .
+           token: ${{ secrets.YOUR_GITHUB_TOKEN }}  
