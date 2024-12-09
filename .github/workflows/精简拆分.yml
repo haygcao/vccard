@@ -1,4 +1,4 @@
-name: split Convert SQL to CSV Generate reduced Dart Phone Location Maps
+name: 精简split Convert SQL to CSV Generate reduced Dart Phone Location Maps
 
 on:
   workflow_dispatch:
