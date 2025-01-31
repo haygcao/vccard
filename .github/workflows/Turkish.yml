@@ -21,8 +21,8 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install pandas
-        run: pip install pandas
+      - name: Install pandas and urllib
+        run: pip install pandas urllib3
 
       - name: Download Turkish Spam Numbers data
         run: |
@@ -32,6 +32,7 @@ jobs:
         run: |
           python <<EOF
           import pandas as pd
+          from urllib.parse import unquote
 
           try:
               df = pd.read_csv('turkish_spam_numbers.txt', header=None, names=['phoneNumber'], on_bad_lines='skip')
@@ -45,7 +46,8 @@ jobs:
           df['phoneNumber'] = df['phoneNumber'].astype(str).str.strip()
           df = df[df['phoneNumber'].notna() & (df['phoneNumber'] != '')]
 
-          # The + sign will be preserved, no modification needed here.
+          # Decode the URL-encoded phone numbers
+          df['phoneNumber'] = df['phoneNumber'].apply(lambda x: unquote(x))
 
           df['label'] = 'Spam Likely'
           df['name'] = ''
