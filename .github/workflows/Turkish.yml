@@ -45,8 +45,7 @@ jobs:
           df['phoneNumber'] = df['phoneNumber'].astype(str).str.strip()
           df = df[df['phoneNumber'].notna() & (df['phoneNumber'] != '')]
 
-          # No longer removing +90 prefix
-          # df['phoneNumber'] = df['phoneNumber'].str.replace(r'^\+90', '', regex=True)
+          # The + sign will be preserved, no modification needed here.
 
           df['label'] = 'Spam Likely'
           df['name'] = ''
