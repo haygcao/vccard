@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: Turkish # Assuming you want to commit to the 'main' branch, change if necessary
+          ref: Turkish # Corrected branch name
           fetch-depth: 0
 
       - name: Install Python
@@ -21,34 +21,31 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install pandas and urllib
-        run: pip install pandas urllib3
+      - name: Install pandas
+        run: pip install pandas
 
-      - name: Download Turkish Spam Numbers data
-        run: |
-          wget -O turkish_spam_numbers.txt "https://raw.githubusercontent.com/symbuzzer/Turkish-Spam-Numbers/refs/heads/main/numbers"
-
-      - name: Process Turkish Spam Numbers data
+      - name: Download and Process Turkish Spam Numbers data
         run: |
           python <<EOF
           import pandas as pd
-          from urllib.parse import unquote
 
           try:
-              df = pd.read_csv('turkish_spam_numbers.txt', header=None, names=['phoneNumber'], on_bad_lines='skip')
+              # Directly download CSV data into a pandas DataFrame
+              df = pd.read_csv('https://raw.githubusercontent.com/symbuzzer/Turkish-Spam-Numbers/main/numbers', header=None, names=['phoneNumber'], on_bad_lines='skip', dtype={'phoneNumber': str})
           except pd.errors.EmptyDataError:
-              print("Error: TXT file is empty. Exiting.")
+              print("Error: CSV file is empty. Exiting.")
               exit(1)
           except pd.errors.ParserError as e:
-              print(f"Error parsing TXT: {e}")
+              print(f"Error parsing CSV: {e}")
+              exit(1)
+          except Exception as e:
+              print(f"Error downloading or processing CSV: {e}")
               exit(1)
 
           df['phoneNumber'] = df['phoneNumber'].astype(str).str.strip()
           df = df[df['phoneNumber'].notna() & (df['phoneNumber'] != '')]
 
-          # Decode the URL-encoded phone numbers
-          df['phoneNumber'] = df['phoneNumber'].apply(lambda x: unquote(x))
-
+          # The + sign should be preserved as we are directly reading the CSV
           df['label'] = 'Spam Likely'
           df['name'] = ''
           df['avatar'] = ''
@@ -64,6 +61,6 @@ jobs:
         with:
           commit_message: "Update processed Turkish Spam Numbers data"
           file_pattern: "processed_turkish_spam_numbers.csv"
-          branch: Turkish # Assuming you want to commit to the 'main' branch, change if necessary
+          branch: Turkish # Corrected branch name
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
