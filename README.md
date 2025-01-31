@@ -1,5 +1,5 @@
 * **Turkish Spam Numbers:** * https://github.com/symbuzzer/Turkish-Spam-Numbers
-Turkish Spam Numbers - v25012715
+Turkish Spam Numbers
 [TR] Spam number list for Turkish users / [EN] Spam number list for Turkish users
 [TR] How to use? / [EN] How to use?
 
