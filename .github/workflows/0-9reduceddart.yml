@@ -1,4 +1,4 @@
-name: Convert SQL to CSV Generate reduced Dart Phone Location Maps
+name: Reduced 缩减0-9Convert SQL to CSV Generate reduced Dart Phone Location Maps
 
 on:
   workflow_dispatch:
@@ -314,7 +314,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update Dart phone location maps with optimized version and mobile prefixes"
-          file_pattern: "lib/phone_location_*.dart"
+          file_pattern: "lib/reduced/cn/phone_location_*.dart"
           branch: dartnumber
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
