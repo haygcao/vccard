@@ -1,0 +1,68 @@
+name: Turkish Spam Numbers Weekly Data Processing
+
+on:
+  schedule:
+    - cron: '0 13 * * 0' # Run every Sunday at 13:00 UTC
+  workflow_dispatch:
+
+jobs:
+  process_data:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: Turkish # Assuming you want to commit to the 'main' branch, change if necessary
+          fetch-depth: 0
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install pandas
+        run: pip install pandas
+
+      - name: Download Turkish Spam Numbers data
+        run: |
+          wget -O turkish_spam_numbers.txt "https://raw.githubusercontent.com/symbuzzer/Turkish-Spam-Numbers/refs/heads/main/numbers"
+
+      - name: Process Turkish Spam Numbers data
+        run: |
+          python <<EOF
+          import pandas as pd
+
+          try:
+              df = pd.read_csv('turkish_spam_numbers.txt', header=None, names=['phoneNumber'], on_bad_lines='skip')
+          except pd.errors.EmptyDataError:
+              print("Error: TXT file is empty. Exiting.")
+              exit(1)
+          except pd.errors.ParserError as e:
+              print(f"Error parsing TXT: {e}")
+              exit(1)
+
+          df['phoneNumber'] = df['phoneNumber'].astype(str).str.strip()
+          df = df[df['phoneNumber'].notna() & (df['phoneNumber'] != '')]
+
+          # No longer removing +90 prefix
+          # df['phoneNumber'] = df['phoneNumber'].str.replace(r'^\+90', '', regex=True)
+
+          df['label'] = 'Spam Likely'
+          df['name'] = ''
+          df['avatar'] = ''
+          df['isSubscribed'] = 1
+          df['count'] = ''
+          df['url'] = ''
+          df = df[['phoneNumber', 'label', 'name', 'avatar', 'isSubscribed', 'count', 'url']]
+          df.to_csv('processed_turkish_spam_numbers.csv', index=False)
+          EOF
+
+      - name: Commit and Push CSV
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update processed Turkish Spam Numbers data"
+          file_pattern: "processed_turkish_spam_numbers.csv"
+          branch: main # Assuming you want to commit to the 'main' branch, change if necessary
+          repository: .
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
