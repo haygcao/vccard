@@ -63,6 +63,6 @@ jobs:
         with:
           commit_message: "Update processed Turkish Spam Numbers data"
           file_pattern: "processed_turkish_spam_numbers.csv"
-          branch: main # Assuming you want to commit to the 'main' branch, change if necessary
+          branch: Turkish # Assuming you want to commit to the 'main' branch, change if necessary
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
