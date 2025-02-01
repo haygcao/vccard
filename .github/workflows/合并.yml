@@ -1,0 +1,88 @@
+name: Merge Fixed Line and Mobile Data
+
+on:
+  workflow_dispatch: # Allows manual triggering
+  workflow_run:
+    workflows: ["优化0-9 末尾"]
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+jobs:
+  merge-data:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          ref: dartnumber
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install requests
+        run: pip install requests
+
+      - name: Merge English Data
+        run: |
+          python << EOF
+          import requests
+
+          def download_and_extract(url):
+              response = requests.get(url)
+              response.raise_for_status()
+              content = response.text
+              start = content.find('{') + 1
+              end = content.rfind('}')
+              return content[start:end]
+
+          fixed_line_en_url = "https://raw.githubusercontent.com/haygcao/vccard/refs/heads/dartnumber/lib/merged/fixed_line_en.dart"
+          mobile_en_url = "https://raw.githubusercontent.com/haygcao/vccard/refs/heads/dartnumber/lib/cn/phone_location_en_optimized.dart"
+
+          fixed_line_en_data = download_and_extract(fixed_line_en_url)
+          mobile_en_data = download_and_extract(mobile_en_url)
+
+          merged_en_content = f"Map<int, String> get86_en() {{\n  return {{\n    {fixed_line_en_data}\n{mobile_en_data}\n  }};\n}}"
+
+          with open("lib/cn/phone_location_en.dart", "w", encoding="utf-8") as f:
+              f.write(merged_en_content)
+          EOF
+
+      - name: Merge Chinese Data
+        run: |
+          python << EOF
+          import requests
+
+          def download_and_extract(url):
+              response = requests.get(url)
+              response.raise_for_status()
+              content = response.text
+              start = content.find('{') + 1
+              end = content.rfind('}')
+              return content[start:end]
+
+          fixed_line_zh_url = "https://raw.githubusercontent.com/haygcao/vccard/refs/heads/dartnumber/lib/merged/fixed_line_zh.dart"
+          mobile_zh_url = "https://raw.githubusercontent.com/haygcao/vccard/refs/heads/dartnumber/lib/cn/phone_location_zh_optimized.dart"
+
+          fixed_line_zh_data = download_and_extract(fixed_line_zh_url)
+          mobile_zh_data = download_and_extract(mobile_zh_url)
+
+          merged_zh_content = f"Map<int, String> get86_zh() {{\n  return {{\n    {fixed_line_zh_data}\n{mobile_zh_data}\n  }};\n}}"
+
+          with open("lib/cn/phone_location_zh.dart", "w", encoding="utf-8") as f:
+              f.write(merged_zh_content)
+          EOF
+
+      - name: Commit and Push Merged Data
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Merge fixed-line and mobile phone location data"
+          file_pattern: "lib/cn/merged/phone_location_*.dart"
+          branch: dartnumber
+          repository: .
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
