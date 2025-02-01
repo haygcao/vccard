@@ -248,7 +248,7 @@ jobs:
                   f.write('  };\n}\n')
 
           if __name__ == "__main__":
-              optimized_zh, optimized_en = optimize_phone_ranges('phone_location_processed.csv')
+              optimized_zh, optimized_en = optimize_phone_ranges('lib/cn/phone_location_processed.csv')
               generate_optimized_dart_files(optimized_zh, optimized_en)
           EOF
           python optimize_ranges.py
