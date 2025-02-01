@@ -1,4 +1,4 @@
-name: 二次拆分split Convert SQL to CSV Generate reduced Dart Phone Location Maps
+name: 0-9 精简拆分
 
 on:
   workflow_dispatch:
