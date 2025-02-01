@@ -63,7 +63,11 @@ jobs:
 
           if __name__ == "__main__":
               sql_content = download_sql()
-              convert_to_csv(sql_content, 'phone_location.csv')
+              //convert_to_csv(sql_content, 'phone_location.csv')
+              # Create lib/cn directory if it doesn't exist
+              os.makedirs('lib/cn', exist_ok=True)
+              convert_to_csv(sql_content, 'lib/cn/phone_location.csv')
+              
           EOF
           python convert_sql_to_csv.py
 
