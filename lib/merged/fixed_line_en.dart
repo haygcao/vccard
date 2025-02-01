@@ -333,6 +333,6 @@ Map<int, String> getFixedLineCodes_en() {
     86996: "KuErle, Xinjiang",
     86997: "Akesu, Xinjiang",
     86998: "Kashi, Xinjiang",
-    86999: "Yining, Xinjiang"
+    86999: "Yining, Xinjiang",
       };
 }
