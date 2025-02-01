@@ -74,7 +74,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update phone_location"
-          file_pattern: "phone_location.csv"
+          file_pattern: "lib/cn/phone_location.csv"
           branch: dartnumber
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
