@@ -218,14 +218,17 @@ jobs:
               temp_df.to_csv(temp_csv, index=False)
               second_round = process_csv(temp_csv)
               
-              # Sort by phone number after the second round
-              second_round.sort(key=lambda x: x['phone'])
+              # Convert the result of the second round back to a DataFrame
+              final_df = pd.DataFrame(second_round)
+
+              # Sort by phone number after the second round using DataFrame's sort_values
+              final_df.sort_values(by='phone', inplace=True)
               
               optimized_zh = {}
               optimized_en = {}
 
               # Use DataFrame iteration to maintain order
-              for item in second_round:
+              for _, row in final_df.iterrows():
                   phone = row['phone']
                   optimized_zh[phone] = f"{row['province']}{row['city']}"
                   optimized_en[phone] = convert_to_pinyin(row['province'], row['city'])
