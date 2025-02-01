@@ -32,6 +32,7 @@ jobs:
           import requests
           import pandas as pd
           import csv
+          import os 
 
           def download_sql():
               url = "https://github.com/dannyhu926/phone_location/raw/refs/heads/master/mysql/phone_location.sql"
