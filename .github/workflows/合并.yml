@@ -64,7 +64,7 @@ jobs:
           # Merge data, ensuring fixed-line data comes first
           merged_en_content = f"{fixed_line_en_data}\n{mobile_en_data}"
 
-          with open("lib/cn/merged/phone_location_en.dart", "w", encoding="utf-8") as f:
+          with open("lib/cn/merged/86_en.dart", "w", encoding="utf-8") as f:
               f.write(f"Map<int, String> get86_en() {{\n  return {{\n    {merged_en_content}\n  }};\n}}")
           EOF
 
@@ -101,7 +101,7 @@ jobs:
           # Merge data, ensuring fixed-line data comes first
           merged_zh_content = f"{fixed_line_zh_data}\n{mobile_zh_data}"
 
-          with open("lib/cn/merged/phone_location_zh.dart", "w", encoding="utf-8") as f:
+          with open("lib/cn/merged/86_zh.dart", "w", encoding="utf-8") as f:
               f.write(f"Map<int, String> get86_zh() {{\n  return {{\n    {merged_zh_content}\n  }};\n}}")
           EOF
 
@@ -109,7 +109,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Merge fixed-line and mobile phone location data into lib/cn/merged"
-          file_pattern: "lib/cn/merged/phone_location_*.dart"
+          file_pattern: "lib/cn/merged/86_*.dart"
           branch: dartnumber
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
