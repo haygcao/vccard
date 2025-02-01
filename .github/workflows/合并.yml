@@ -40,6 +40,7 @@ jobs:
               response = requests.get(url)
               response.raise_for_status()
               content = response.text
+              # Find the start and end of the Map data, excluding header and footer
               start = content.find('{') + 1
               end = content.rfind('}')
               return content[start:end]
@@ -53,11 +54,9 @@ jobs:
           # Merge data, ensuring fixed-line data comes first
           merged_en_content = f"{fixed_line_en_data}\n{mobile_en_data}"
 
-          # Add the wrapper only ONCE after merging
-          final_en_content = f"Map<int, String> get86_en() {{\n  return {{\n    {merged_en_content}\n  }};\n}}"
-
           with open("lib/cn/merged/phone_location_en.dart", "w", encoding="utf-8") as f:
-              f.write(final_en_content)
+              # Add wrapper only once, just before writing to file
+              f.write(f"Map<int, String> get86_en() {{\n  return {{\n    {merged_en_content}\n  }};\n}}")
           EOF
 
       - name: Merge Chinese Data
@@ -69,6 +68,7 @@ jobs:
               response = requests.get(url)
               response.raise_for_status()
               content = response.text
+              # Find the start and end of the Map data, excluding header and footer
               start = content.find('{') + 1
               end = content.rfind('}')
               return content[start:end]
@@ -82,11 +82,9 @@ jobs:
           # Merge data, ensuring fixed-line data comes first
           merged_zh_content = f"{fixed_line_zh_data}\n{mobile_zh_data}"
 
-          # Add the wrapper only ONCE after merging
-          final_zh_content = f"Map<int, String> get86_zh() {{\n  return {{\n    {merged_zh_content}\n  }};\n}}"
-
           with open("lib/cn/merged/phone_location_zh.dart", "w", encoding="utf-8") as f:
-              f.write(final_zh_content)
+              # Add wrapper only once, just before writing to file
+              f.write(f"Map<int, String> get86_zh() {{\n  return {{\n    {merged_zh_content}\n  }};\n}}")
           EOF
 
       - name: Commit and Push Merged Data
