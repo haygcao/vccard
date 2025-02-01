@@ -1,4 +1,4 @@
-name: Reduced 缩减0-9Convert SQL to CSV Generate reduced Dart Phone Location Maps
+name: Convert SQL to CSV Generate reduced Dart Phone Location Maps
 
 on:
   workflow_dispatch:
@@ -182,24 +182,21 @@ jobs:
                   prefix_groups = defaultdict(list)
                   for num in numbers:
                       if num['phone'] not in processed:
-                          prefix = num['phone'][:-1] # 提取除了最后一位的电话号码前缀
+                          prefix = num['phone'][:-1]
                           prefix_groups[prefix].append(num)
 
                   for prefix, group in prefix_groups.items():
-                      if len(group) == 10: # 检查是否有10个号码具有相同的前缀
+                      if len(group) == 10:
                           sorted_group = sorted(group, key=lambda x: x['phone'])
-                          # 检查这10个号码是否是连续的 (0-9)
                           if all(int(n['phone'][-1]) == i for i, n in enumerate(sorted_group)):
                               first = sorted_group[0]
-                              # 检查这10个号码的省份和城市是否相同
-
                               if all(n['province'] == first['province'] and n['city'] == first['city'] for n in sorted_group):
                                   result.append({
-                                      'phone': int(prefix), # 将前缀（去掉了最后一位）作为新的电话号码
+                                      'phone': int(prefix),
                                       'province': first['province'],
                                       'city': first['city']
                                   })
-                                  processed.update(n['phone'] for n in sorted_group) # 将这10个号码标记为已处理
+                                  processed.update(n['phone'] for n in sorted_group)
 
               for _, row in df.iterrows():
                   phone = str(row['phone'])
@@ -317,7 +314,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update Dart phone location maps with optimized version and mobile prefixes"
-          file_pattern: "lib/reduced/cn/phone_location_*.dart"
+          file_pattern: "lib/phone_location_*.dart"
           branch: dartnumber
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
