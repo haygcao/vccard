@@ -214,7 +214,7 @@ jobs:
           def optimize_phone_ranges(input_file):
               first_round = process_csv(input_file)
               temp_df = pd.DataFrame(first_round)
-              temp_csv = 'temp_processed.csv'
+              temp_csv = 'lib/cn/temp_processed.csv'
               temp_df.to_csv(temp_csv, index=False)
               second_round = process_csv(temp_csv)
               
