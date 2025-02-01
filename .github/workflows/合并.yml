@@ -1,7 +1,7 @@
 name: Merge Fixed Line and Mobile Data
 
 on:
-  workflow_dispatch: # Allows manual triggering
+  workflow_dispatch:
   workflow_run:
     workflows: ["优化0-9 末尾"]
     types:
@@ -28,6 +28,9 @@ jobs:
       - name: Install requests
         run: pip install requests
 
+      - name: Create merged directory
+        run: mkdir -p lib/cn/merged
+
       - name: Merge English Data
         run: |
           python << EOF
@@ -49,7 +52,7 @@ jobs:
 
           merged_en_content = f"Map<int, String> get86_en() {{\n  return {{\n    {fixed_line_en_data}\n{mobile_en_data}\n  }};\n}}"
 
-          with open("lib/cn/phone_location_en.dart", "w", encoding="utf-8") as f:
+          with open("lib/cn/merged/phone_location_en.dart", "w", encoding="utf-8") as f:
               f.write(merged_en_content)
           EOF
 
@@ -74,14 +77,14 @@ jobs:
 
           merged_zh_content = f"Map<int, String> get86_zh() {{\n  return {{\n    {fixed_line_zh_data}\n{mobile_zh_data}\n  }};\n}}"
 
-          with open("lib/cn/phone_location_zh.dart", "w", encoding="utf-8") as f:
+          with open("lib/cn/merged/phone_location_zh.dart", "w", encoding="utf-8") as f:
               f.write(merged_zh_content)
           EOF
 
       - name: Commit and Push Merged Data
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Merge fixed-line and mobile phone location data"
+          commit_message: "Merge fixed-line and mobile phone location data into lib/cn/merged"
           file_pattern: "lib/cn/merged/phone_location_*.dart"
           branch: dartnumber
           repository: .
