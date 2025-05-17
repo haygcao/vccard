@@ -78,3 +78,81 @@ jobs:
           file_pattern: "原始/cn/*.csv"
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
+          
+      # 新增转换步骤 ▼▼▼▼▼▼▼▼
+      - name: Convert CSV Format
+        run: |
+          python <<EOF
+          import csv
+          import os
+
+          # 标签映射字典
+          label_mapping = {
+              '其他': 'other',
+              '外卖订餐': 'takeaway',
+              '快递物流': 'delivery',
+              '电商购物': 'ecommerce',
+              '金融银行': 'bank',
+              '互联网': 'internet',
+              '出行购票': 'travel_ticketing',
+              '应用软件': 'application_software',
+              '影音娱乐': 'media_entertainment',
+              '房产中介': 'agent',
+              '政府机构': 'government',
+              '本地生活': 'local_services',
+              '汽车行业': 'automotive_industry',
+              '租车代价': 'car_rental',
+              '证券保险': 'insurance',
+              '通讯服务': 'telecommunication'
+          }
+
+          # 遍历原始CSV文件
+          for csv_file in os.listdir('.'):
+              if csv_file.endswith('.csv'):
+                  output_dir = 'processed'
+                  os.makedirs(output_dir, exist_ok=True)
+                  
+                  with open(csv_file, 'r', encoding='utf-8') as infile, \
+                       open(f'{output_dir}/{csv_file}', 'w', encoding='utf-8', newline='') as outfile:
+                      
+                      reader = csv.DictReader(infile)
+                      writer = csv.writer(outfile, quoting=csv.QUOTE_ALL)
+                      
+                      # 写入新表头
+                      writer.writerow([
+                          'id',
+                          'name', 
+                          'priority',
+                          'action',
+                          'phoneNumber',
+                          'labelId',
+                          'isEnabled',
+                          'isSubscribed',
+                          'count',
+                          'avatar'
+                      ])
+
+                      for row in reader:
+                          # 生成新字段
+                          new_row = [
+                              '',  # id留空
+                              row['name'], 
+                              0,   # priority默认值
+                              '',  # action留空
+                              row['phoneNumber'],
+                              label_mapping.get(row['label'], 'other'),  # 标签转换
+                              'true',  # isEnabled默认
+                              row['isSubscribed'],
+                              row['count'],
+                              row['avatar']
+                          ]
+                          writer.writerow(new_row)
+          EOF
+
+      - name: Commit and Push CSV
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update CSV files"
+          file_pattern: "NEW/CN/*.csv"
+          repository: .
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
