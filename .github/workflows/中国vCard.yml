@@ -75,7 +75,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update CSV files"
-          file_pattern: "原始/cn/*.csv"
+          file_pattern: "*.csv"
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
           
