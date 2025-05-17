@@ -34,7 +34,7 @@ jobs:
           import re
           import phonenumbers
 
-          df = pd.read_csv('data.csv')
+          df = pd.read_csv('original/data.csv')
           df = df[['business_name', 'contact_telephone_number']]
           df = df.rename(columns={'business_name': 'name', 'contact_telephone_number': 'phoneNumber'})
 
@@ -63,10 +63,11 @@ jobs:
 
           # 生成新格式数据
           df['id'] = [str(uuid.uuid4()) for _ in range(len(df))]
-          df['priority'] = 1
+          df['priority'] = 3
           df['action'] = 'block'
-          df['labelId'] = 'Telemarketing'
+          df['labelId'] = 'telemarketing'
           df['isEnabled'] = True
+          df['isSubscribed'] = 1
           
           df = df[['id', 'name', 'priority', 'action', 'phoneNumber', 'labelId', 'isEnabled', 'isSubscribed', 'count', 'avatar']]
           df.to_csv('processed_v2.csv', index=False)
