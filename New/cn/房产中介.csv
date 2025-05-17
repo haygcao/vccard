@@ -1,0 +1,4 @@
+"id","name","priority","action","phoneNumber","labelId","isEnabled","isSubscribed","count","avatar"
+"","自如","0","","4001001111","agent","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/房产中介/自如.png"
+"","酷家乐","0","","4008357300","agent","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/房产中介/酷家乐.png"
+"","链家","0","","10109666","agent","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/房产中介/链家.png"
