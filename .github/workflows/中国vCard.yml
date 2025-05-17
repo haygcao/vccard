@@ -116,7 +116,7 @@ jobs:
                               '',
                               row['name'],
                               0,
-                              '',
+                              'none',
                               row['phoneNumber'],
                               label_mapping.get(row['label'], 'other'),
                               'true',
