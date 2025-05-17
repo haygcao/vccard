@@ -101,10 +101,11 @@ jobs:
         run: |
           git clean -f US/processed_v2.csv
           
-      - name: Prepare main branch directory
+      - name: Handle Untracked Files
         run: |
-          mkdir -p US
-          mv processed_v2.csv US/
+          mkdir -p temp
+          mv US/processed_v2.csv temp/
+          git clean -f US/processed_v2.csv
 
       - name: Commit and Push to main
         uses: stefanzweifel/git-auto-commit-action@v5
