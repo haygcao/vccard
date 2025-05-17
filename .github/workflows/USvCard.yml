@@ -62,7 +62,7 @@ jobs:
           df = df[df['phoneNumber'].notna() & (df['phoneNumber'] != '')]  # Filter after formatting
 
           # 生成新格式数据
-          df['id'] = [str(uuid.uuid4()) for _ in range(len(df))]
+          df['id'] = ''
           df['priority'] = 3
           df['action'] = 'block'
           df['labelId'] = 'telemarketing'
@@ -91,5 +91,20 @@ jobs:
             processed_v2.csv
             original/data.csv
           branch: us
+          repository: .
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
+
+      - name: Prepare main branch directory
+        run: |
+          mkdir -p US
+          mv processed_v2.csv US/
+
+      - name: Commit and Push to main
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update main branch FCC data"
+          file_pattern: |
+            US/processed_v2.csv
+          branch: main
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
