@@ -87,7 +87,7 @@ jobs:
               '互联网': 'internet',
               '出行购票': 'travel_ticketing',
               '应用软件': 'application_software',
-              '影音娱乐': 'media_entertainment',
+              '影音娱乐': 'entertainment',
               '房产中介': 'agent',
               '政府机构': 'government',
               '本地生活': 'local_services',
@@ -127,12 +127,20 @@ jobs:
                           writer.writerow(new_row)
           EOF
 
-      - name: Commit and Push CSV
+      - name: Commit Original CSVs
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update CSV files"
+          commit_message: "Update original CSV files"
           file_pattern: |
             原始/cn/*.csv
+          repository: .
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
+
+      - name: Commit Processed new CSVs
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update processed CSV files"
+          file_pattern: |
             New/cn/*.csv
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
