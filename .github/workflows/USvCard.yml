@@ -96,7 +96,11 @@ jobs:
           branch: us
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
-
+          
+      - name: Handle Untracked Files
+        run: |
+          git clean -f US/processed_v2.csv
+          
       - name: Prepare main branch directory
         run: |
           mkdir -p US
