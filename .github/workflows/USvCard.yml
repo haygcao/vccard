@@ -98,12 +98,19 @@ jobs:
           branch: us
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
-          
-      - name: Handle Untracked Files
-        run: |
-          git clean -f US/processed_v2.csv
-          
+          force: true
 
+      - name: Prepare main branch directory
+        run: |
+          mkdir -p US
+          ls -l US/  # 验证文件生成状态
+
+      - name: Stage files for main branch
+        run: |
+          mv processed_v2.csv US/
+          git stash
+          git checkout main
+          git stash pop
 
       - name: Commit and Push to main
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -114,3 +121,5 @@ jobs:
           branch: main
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
+          force: true
+
