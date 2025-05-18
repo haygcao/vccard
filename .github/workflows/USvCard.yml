@@ -41,7 +41,9 @@ jobs:
           df['phoneNumber'] = df['phoneNumber'].astype(str).apply(lambda x: re.sub(r"^'+", "", x))
           df['phoneNumber'] = df['phoneNumber'].str.replace('.', '', regex=False)
           df['phoneNumber'] = df['phoneNumber'].str.strip()
-          df['name'] = df['name'].astype(str).apply(lambda x: re.sub(r'[",\.]', '', x)).str.strip()
+          df['name'] = df['name'].astype(str).apply(lambda x: re.sub(r"^'+\"", "", x))
+          df['name'] = df['name'].str.replace(r'[",.]', '', regex=True)
+          #df['name'] = df['name'].str.strip()
 
           def format_phone_number(number):
               try:
