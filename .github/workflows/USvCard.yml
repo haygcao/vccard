@@ -96,17 +96,15 @@ jobs:
           branch: us
           force: true
 
-      - name: Prepare main branch files
+      - name: Prepare and commit to main branch
         run: |
-          git clean -fd
+          git fetch origin main:main
+          git checkout main || git checkout -b main
           mkdir -p US
-          mv processed_v2.csv US/
-
-      - name: Commit and Push to main
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Update main branch FCC data"
-          file_pattern: US/processed_v2.csv
-          branch: main
-          force: true
+          cp processed_v2.csv US/
+          git add US/processed_v2.csv
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git commit -m "Update main branch FCC data" || echo "No changes to commit"
+          git push -f origin main
 
