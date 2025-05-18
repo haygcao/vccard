@@ -88,49 +88,12 @@ jobs:
           df_legacy.to_csv('processed_data.csv', index=False)
           EOF
 
-      - name: Configure Git User
-        run: |
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-
-      - name: Prepare file for main branch and Commit to main branch
-        run: |
-          if [ ! -f processed_v2.csv ]; then
-            echo "错误: processed_v2.csv (由Python脚本生成) 未在工作区根目录找到!"
-            exit 1
-          fi
-          mkdir -p US
-          cp processed_v2.csv US/processed_v2.csv # 复制一份给 main 分支使用
-          echo "已将 processed_v2.csv 复制到 US/processed_v2.csv 准备提交到 main 分支。"
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - name: Commit to main branch
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update main branch FCC data (US/processed_v2.csv)"
-          file_pattern: "US/processed_v2.csv" # 提交 US/ 目录下的副本
+          commit_message: "Update main branch FCC data"
+          file_pattern: "US/processed_v2.csv"
           branch: main
-          force: true # 允许空提交或强制添加
-          push_options: '--force' # 强制推送 main 分支
-
-      - name: Commit and Force Push to 'us' branch
-        run: |
-          # 检查 'us' 分支所需的文件是否都存在于工作区根目录
-          if [ ! -f original/data.csv ] || [ ! -f processed_data.csv ] || [ ! -f processed_v2.csv ]; then
-            echo "错误: us 分支所需的一个或多个数据文件 (original/data.csv, processed_data.csv, processed_v2.csv) 未找到!"
-            exit 1
-          fi
-
-          # 基于当前 main 分支的最新状态创建/重置 'us' 分支并切换
-          git checkout -B us
-          
-          # 添加原始下载数据，旧格式处理数据，以及根目录的新格式处理数据
-          git add original/data.csv processed_data.csv processed_v2.csv
-          
-          # 尝试提交。如果无变化导致提交失败， `|| true` 确保工作流继续
-          git commit -m "Update processed FCC data (us branch)" || true
-          
-          echo "正在强制推送到 us 分支..."
-          git push origin us --force
-          
-          # 操作完成后，切换回 main 分支（良好实践）
-          git checkout main
+          force: true
  
 
