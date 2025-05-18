@@ -92,18 +92,13 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update processed FCC data"
-          file_pattern: |
-            processed_data.csv
-            processed_v2.csv
-
+          file_pattern: processed_data.csv processed_v2.csv original/data.csv
           branch: us
           force: true
 
-      - name: Clean workspace
-        run: git clean -fd -f
-
       - name: Prepare main branch files
         run: |
+          git clean -fd
           mkdir -p US
           mv processed_v2.csv US/
 
@@ -111,8 +106,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update main branch FCC data"
-          file_pattern: |
-            US/processed_v2.csv
+          file_pattern: US/processed_v2.csv
           branch: main
           force: true
 
