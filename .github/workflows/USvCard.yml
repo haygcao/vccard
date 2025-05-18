@@ -76,7 +76,7 @@ jobs:
           df['url'] = ''
 
           df = df[['name', 'priority', 'action', 'phoneNumber', 'labelId', 'isEnabled', 'isSubscribed', 'count', 'avatar', 'url']]
-          df.to_csv('processed_v2.csv', index=False)
+          df.to_csv('US/processed_v2.csv', index=False)
           
           # 保留原始格式
           df['label'] = 'Telemarketing'
@@ -85,15 +85,20 @@ jobs:
           df['count'] = ''
           df['url'] = ''
           df_legacy = df[['phoneNumber', 'label', 'name', 'avatar', 'isSubscribed', 'count', 'url']]
-          df_legacy.to_csv('processed_data.csv', index=False)
+          df_legacy.to_csv('US/processed_data.csv', index=False)
           EOF
 
-      - name: Commit to main branch
+      - name: Commit Processed new CSVs
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update main branch FCC data"
-          file_pattern: "US/processed_v2.csv"
-          branch: main
-          force: true
- 
+          commit_message: "Update US FCC processed CSV files"
+          # file_pattern should match the location of the files relative to the repository root
+          # Since 'checkout' checks out to the root, and we put files in 'US/' subdir:
+          file_pattern: US/*.csv
+          # 'repository: .' means the current repository, which is correct.
+          # Use the GITHUB_TOKEN provided by Actions, not a custom secret unless necessary.
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # Optional: specify the branch if it's different from the checked-out branch
+          # However, since we checked out 'us', it will commit to 'us' by default.
+          # push_options: --force # Use with caution if rewriting history is intended
 
