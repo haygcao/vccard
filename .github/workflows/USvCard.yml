@@ -75,7 +75,7 @@ jobs:
           df['avatar'] = ''
           df['url'] = ''
 
-          df = df[['id', 'name', 'priority', 'action', 'phoneNumber', 'labelId', 'isEnabled', 'isSubscribed', 'count', 'avatar', 'url']]
+          df = df[['name', 'priority', 'action', 'phoneNumber', 'labelId', 'isEnabled', 'isSubscribed', 'count', 'avatar', 'url']]
           df.to_csv('processed_v2.csv', index=False)
           
           # 保留原始格式
