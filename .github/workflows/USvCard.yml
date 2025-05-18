@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: us
+          ref: main
           fetch-depth: 0
 
       - name: Install Python
@@ -26,7 +26,8 @@ jobs:
 
       - name: Download and Process Data
         run: |
-          mkdir -p original
+          mkdir -p original # Directory for raw download
+          mkdir -p US       # Directory for processed files
           wget --content-disposition -O original/data.csv https://fccprod.servicenowservices.com/api/x_g_fmc_rmd/rmd/csv_download
 
           python <<EOF
