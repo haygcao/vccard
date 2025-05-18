@@ -95,9 +95,12 @@ jobs:
           file_pattern: |
             processed_data.csv
             processed_v2.csv
-            original/data.csv
+
           branch: us
           force: true
+
+      - name: Clean workspace
+        run: git clean -fd -f
 
       - name: Prepare main branch files
         run: |
