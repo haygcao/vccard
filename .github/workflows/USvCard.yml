@@ -88,22 +88,54 @@ jobs:
           df_legacy.to_csv('processed_data.csv', index=False)
           EOF
 
-      - name: Switch to us branch and commit
+      - name: Configure Git User
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-          git add processed_data.csv processed_v2.csv original/data.csv
-          git checkout us
-          git commit -m "Update processed FCC data"
+
+      - name: Commit and Force Push to 'us' branch
+        run: |
+          # 检查文件是否存在
+          if [ ! -f original/data.csv ] || [ ! -f processed_data.csv ] || [ ! -f processed_v2.csv ]; then
+            echo "一个或多个数据文件未生成，跳过 us 分支操作。"
+            exit 1 # 或者 exit 0 如果你希望工作流继续
+          fi
+
+          # 创建/重置 'us' 分支基于当前 main 分支的 HEAD，并切换过去
+          git checkout -B us
+          
+          # 添加文件 (这些文件由 Python 脚本在工作区根目录生成)
+          git add original/data.csv processed_data.csv processed_v2.csv
+          
+          # 提交。如果没有任何更改，`git commit` 会失败，但我们依然要强制推送。
+          # 使用 `|| true` 来忽略 commit 可能的失败 (例如 "nothing to commit")
+          git commit -m "Update processed FCC data (us branch)" || true
+          
+          # 强制推送到 'us' 分支
+          echo "Force pushing to us branch..."
           git push origin us --force
+          
+          # 切换回 main 分支为下一步做准备
           git checkout main
 
-      - name: Commit to main branch
+      - name: Prepare for main branch commit
+        run: |
+          if [ ! -f processed_v2.csv ]; then
+            echo "processed_v2.csv 未找到，跳过 main 分支操作。"
+            exit 1 # 或者 exit 0
+          fi
+          mkdir -p US
+          mv processed_v2.csv US/processed_v2.csv
+
+      - name: Commit and Force Push to 'main' branch
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update main branch FCC data"
+          commit_message: "Update main branch FCC data (US/processed_v2.csv)"
           file_pattern: "US/processed_v2.csv"
           branch: main
+          # `force: true` 会尝试提交，即使文件内容未变 (allow-empty)
+          # `push_options: '--force'` 实现强制推送
           force: true
+          push_options: '--force'
  
 
