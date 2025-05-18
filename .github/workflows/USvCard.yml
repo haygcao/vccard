@@ -65,7 +65,7 @@ jobs:
           df = df[df['phoneNumber'].notna() & (df['phoneNumber'] != '')]  # Filter after formatting
 
           # 生成新格式数据
-          df['id'] = ''
+          #df['id'] = ''
           df['priority'] = 3
           df['action'] = 'block'
           df['labelId'] = 'telemarketing'
