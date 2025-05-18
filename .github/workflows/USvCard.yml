@@ -88,28 +88,21 @@ jobs:
           df_legacy.to_csv('processed_data.csv', index=False)
           EOF
 
-      - name: Prepare directories
+      - name: Switch to us branch and commit
         run: |
-          mkdir -p US
-          cp processed_v2.csv US/
-          cp processed_v2.csv processed_v2_backup.csv
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git checkout us
+          git add processed_data.csv processed_v2.csv original/data.csv US/processed_v2.csv
+          git commit -m "Update processed FCC data"
+          git push origin us --force
+          git checkout main
 
-      - name: Commit to US branch
+      - name: Commit to main branch
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update processed FCC data"
-          file_pattern: processed_data.csv processed_v2.csv original/data.csv
-          branch: us
+          commit_message: "Update main branch FCC data"
+          file_pattern: "US/processed_v2.csv"
+          branch: main
           force: true
-
-      - name: Switch and commit to main branch
-        run: |
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Actions"
-          git fetch origin main:main
-          git checkout main || git checkout -b main
-          cp processed_v2_backup.csv US/processed_v2.csv
-          git add US/processed_v2.csv
-          git commit -m "Update main branch FCC data" || echo "No changes to commit"
-          git push -f origin main
 
