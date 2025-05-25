@@ -3,7 +3,7 @@ name: Merge Fixed Line and Mobile Data
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ["优化0-9 末尾"]
+    workflows: ["合并fixed line优化0-9 末尾"]
     types:
       - completed
 
