@@ -41186,6 +41186,7 @@ Map<int, String> get86_8618_en() {
     861841198: "Fuxin, Liaoning",
     861841199: "Baoding, Hebei",
     861841204: "Shanghai, Shanghai",
+    861841212: "Suqian, Jiangsu",
     861841213: "Xian, Shanxi",
     861841214: "Shanghai, Shanghai",
     861841215: "Xian, Shanxi",
@@ -43988,6 +43989,7 @@ Map<int, String> get86_8618_en() {
     861844097: "Zhaotong, Yunnan",
     861844098: "Zhaotong, Yunnan",
     861844099: "Zhaotong, Yunnan",
+    861844122: "Xuzhou, Jiangsu",
     861844130: "Shenyang, Liaoning",
     861844131: "Dalian, Liaoning",
     861844132: "Anshan, Liaoning",
@@ -99806,7 +99808,5 @@ Map<int, String> get86_8618_en() {
     861899997: "Wulumuqi, Xinjiang",
     861899998: "Wulumuqi, Xinjiang",
     861899999: "Wulumuqi, Xinjiang",
-    861841212: "Suqian, Jiangsu",
-    861844122: "Xuzhou, Jiangsu",
   };
 }
