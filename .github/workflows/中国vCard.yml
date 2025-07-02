@@ -92,7 +92,7 @@ jobs:
               '政府机构': 'government',
               '本地生活': 'local_services',
               '汽车行业': 'automotive_industry',
-              '租车代价': 'car_rental',
+              '租车代驾': 'car_rental',
               '证券保险': 'insurance',
               '通讯服务': 'telecommunication'
           }
