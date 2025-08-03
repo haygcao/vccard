@@ -1,4 +1,4 @@
-name: Merge Fixed Line and Mobile Data
+name: 合并固定电话和手机Merge Fixed Line and Mobile Data
 
 on:
   workflow_dispatch:
