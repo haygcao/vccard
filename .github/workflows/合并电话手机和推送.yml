@@ -1,0 +1,153 @@
+name: 合并固定电话和手机推送到dlib Merge Fixed Line and Mobile Data
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["合并fixed line优化0-9 末尾"]
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+jobs:
+  merge-data:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: Checkout vccard repository
+        uses: actions/checkout@v4
+        with:
+          ref: dartnumber
+          # 我们把主仓库检出到默认路径
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install requests
+        run: pip install requests
+
+      - name: Create merged directory
+        run: mkdir -p lib/cn/merged
+
+      - name: Merge English Data
+        run: |
+          python << EOF
+          import requests
+
+          def download_and_extract(url):
+              response = requests.get(url)
+              response.raise_for_status()
+              content = response.text
+              # Find the start of the map data after "return {"
+              start_index = content.find("return {") + len("return {")
+              
+              # Find the matching closing brace for the map
+              brace_count = 1
+              end_index = start_index
+              while brace_count > 0 and end_index < len(content):
+                  if content[end_index] == '{':
+                      brace_count += 1
+                  elif content[end_index] == '}':
+                      brace_count -= 1
+                  end_index += 1
+
+              return content[start_index:end_index-1].strip()
+
+          fixed_line_en_url = "https://raw.githubusercontent.com/haygcao/vccard/refs/heads/dartnumber/lib/merged/fixed_line_en.dart"
+          mobile_en_url = "https://raw.githubusercontent.com/haygcao/vccard/refs/heads/dartnumber/lib/cn/phone_location_en_optimized.dart"
+
+          fixed_line_en_data = download_and_extract(fixed_line_en_url)
+          mobile_en_data = download_and_extract(mobile_en_url)
+
+          # Merge data, ensuring fixed-line data comes first
+          merged_en_content = f"{fixed_line_en_data}\n{mobile_en_data}"
+
+          with open("lib/cn/merged/86_en.dart", "w", encoding="utf-8") as f:
+              f.write(f"Map<int, String> get86_en() {{\n  return {{\n    {merged_en_content}\n  }};\n}}")
+          EOF
+
+      - name: Merge Chinese Data
+        run: |
+          python << EOF
+          import requests
+
+          def download_and_extract(url):
+              response = requests.get(url)
+              response.raise_for_status()
+              content = response.text
+              # Find the start of the map data after "return {"
+              start_index = content.find("return {") + len("return {")
+              
+              # Find the matching closing brace for the map
+              brace_count = 1
+              end_index = start_index
+              while brace_count > 0 and end_index < len(content):
+                  if content[end_index] == '{':
+                      brace_count += 1
+                  elif content[end_index] == '}':
+                      brace_count -= 1
+                  end_index += 1
+
+              return content[start_index:end_index-1].strip()
+
+          fixed_line_zh_url = "https://raw.githubusercontent.com/haygcao/vccard/refs/heads/dartnumber/lib/merged/fixed_line_zh.dart"
+          mobile_zh_url = "https://raw.githubusercontent.com/haygcao/vccard/refs/heads/dartnumber/lib/cn/phone_location_zh_optimized.dart"
+
+          fixed_line_zh_data = download_and_extract(fixed_line_zh_url)
+          mobile_zh_data = download_and_extract(mobile_zh_url)
+
+          # Merge data, ensuring fixed-line data comes first
+          merged_zh_content = f"{fixed_line_zh_data}\n{mobile_zh_data}"
+
+          with open("lib/cn/merged/86_zh.dart", "w", encoding="utf-8") as f:
+              f.write(f"Map<int, String> get86_zh() {{\n  return {{\n    {merged_zh_content}\n  }};\n}}")
+          EOF
+
+      - name: Commit and Push to vccard repository
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Merge fixed-line and mobile phone location data into lib/cn/merged"
+          file_pattern: "lib/cn/merged/86_*.dart"
+          branch: dartnumber
+          repository: .
+          # 注意：这里的 token 需要有权限推送到 haygcao/vccard
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
+
+      # ====================================================================
+      # 以下是新增的步骤，用于推送到第二个仓库
+      # ====================================================================
+
+      - name: Checkout dlibphonenumberold repository
+        uses: actions/checkout@v4
+        with:
+          repository: haygcao/dlibphonenumberold
+          # 将第二个仓库克隆到名为 'dlibphonenumberold' 的子目录中
+          path: dlibphonenumberold
+          # 注意：这里的 token 需要有权限推送到 haygcao/dlibphonenumberold
+          # 通常，一个具有 repo 范围的 Personal Access Token (PAT) 可以同时用于两个仓库
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
+
+      - name: Copy generated files to dlibphonenumberold
+        run: |
+          echo "Copying generated files..."
+          # 确保目标目录存在
+          mkdir -p dlibphonenumberold/lib/generated/metadata/geocoding/
+          # 复制文件，-v 参数会显示复制过程
+          cp -v lib/cn/merged/86_en.dart dlibphonenumberold/lib/generated/metadata/geocoding/
+          cp -v lib/cn/merged/86_zh.dart dlibphonenumberold/lib/generated/metadata/geocoding/
+
+      - name: Commit and Push to dlibphonenumberold
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(data): Update geocoding data from vccard workflow"
+          # 指定操作的仓库路径为我们刚刚克隆的子目录
+          repository: dlibphonenumberold
+          # 指定要提交的文件
+          file_pattern: "lib/generated/metadata/geocoding/86_*.dart"
+          # 检查 dlibphonenumberold 的主分支是 main 还是 master，并在此处修改
+          branch: main 
+          # 同样使用这个 token 进行推送
+          token: ${{ secrets.YOUR_GITHUB_TOKEN }}
