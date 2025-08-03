@@ -1,4 +1,4 @@
-name: 优化0-9 末尾
+name: 优化0-9 末尾 仅第一轮
 
 on:
   workflow_dispatch:
