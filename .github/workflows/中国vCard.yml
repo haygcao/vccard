@@ -109,7 +109,7 @@ jobs:
                       writer = csv.writer(outfile, quoting=csv.QUOTE_ALL)
 
                       writer.writerow(['id', 'name', 'priority', 'action', 'phoneNumber',
-                                      'labelId', 'enabled', 'is_auto_update', 'count', 'avatar'])
+                                      'labelId', 'isEnabled', 'isSubscribed', 'count', 'avatar'])
 
                       for row in reader:
                           new_row = [
@@ -120,7 +120,7 @@ jobs:
                               row['phoneNumber'],
                               label_mapping.get(row['label'], 'other'),
                               'true',
-                              row['is_auto_update'],
+                              row['isSubscribed'],
                               row['count'],
                               row['avatar']
                           ]
