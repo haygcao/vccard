@@ -1,4 +1,4 @@
-"phoneNumber","label","name","avatar","isSubscribed","count","url"
+"phoneNumber","label","name","avatar","autoUpdate","count","url"
 "95380","快递物流","DHL","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/快递物流/DHL.png","1","",""
 "11183","快递物流","中国邮政","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/快递物流/中国邮政.png","1","",""
 "11185","快递物流","中国邮政","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/快递物流/中国邮政.png","1","",""

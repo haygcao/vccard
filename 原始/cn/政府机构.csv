@@ -1,4 +1,4 @@
-"phoneNumber","label","name","avatar","isSubscribed","count","url"
+"phoneNumber","label","name","avatar","autoUpdate","count","url"
 "12351","政府机构","中华全国总工会","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/政府机构/中华全国总工会.png","1","",""
 "123660","政府机构","中国税务","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/政府机构/中国税务.png","1","",""
 "12123","政府机构","交通管理局","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/政府机构/交通管理局.png","1","",""

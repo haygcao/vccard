@@ -1,4 +1,4 @@
-"phoneNumber","label","name","avatar","isSubscribed","count","url"
+"phoneNumber","label","name","avatar","autoUpdate","count","url"
 "12319","出行购票","上海交通卡","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/出行购票/上海交通卡.png","1","",""
 "95530","出行购票","中国东方航空","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/出行购票/中国东方航空.png","1","",""
 "95539","出行购票","中国南方航空","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/出行购票/中国南方航空.png","1","",""
