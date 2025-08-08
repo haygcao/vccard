@@ -1,4 +1,4 @@
-"id","name","priority","action","phoneNumber","labelId","isEnabled","isSubscribed","count","avatar"
+"id","name","priority","action","phoneNumber","labelId","isEnabled","autoUpdate","count","avatar"
 "","中华全国总工会","0","none","12351","government","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/政府机构/中华全国总工会.png"
 "","中国税务","0","none","123660","government","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/政府机构/中国税务.png"
 "","交通管理局","0","none","12123","government","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/政府机构/交通管理局.png"

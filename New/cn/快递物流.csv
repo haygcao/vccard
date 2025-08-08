@@ -1,4 +1,4 @@
-"id","name","priority","action","phoneNumber","labelId","isEnabled","isSubscribed","count","avatar"
+"id","name","priority","action","phoneNumber","labelId","isEnabled","autoUpdate","count","avatar"
 "","DHL","0","none","95380","delivery","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/快递物流/DHL.png"
 "","中国邮政","0","none","11183","delivery","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/快递物流/中国邮政.png"
 "","中国邮政","0","none","11185","delivery","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/快递物流/中国邮政.png"

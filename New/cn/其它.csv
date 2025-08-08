@@ -1,4 +1,4 @@
-"id","name","priority","action","phoneNumber","labelId","isEnabled","isSubscribed","count","avatar"
+"id","name","priority","action","phoneNumber","labelId","isEnabled","autoUpdate","count","avatar"
 "","Apple","0","none","4006668800","other","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/其它/Apple.png"
 "","Apple","0","none","4006272273","other","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/其它/Apple.png"
 "","Apple","0","none","4006198141","other","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/其它/Apple.png"

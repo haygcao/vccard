@@ -1,4 +1,4 @@
-"id","name","priority","action","phoneNumber","labelId","isEnabled","isSubscribed","count","avatar"
+"id","name","priority","action","phoneNumber","labelId","isEnabled","autoUpdate","count","avatar"
 "","优酷","0","none","4008100580","entertainment","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/影音娱乐/优酷.png"
 "","喜马拉雅","0","none","4008385616","entertainment","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/影音娱乐/喜马拉雅.png"
 "","小宇宙","0","none","057488382026","entertainment","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/影音娱乐/小宇宙.png"

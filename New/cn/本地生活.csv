@@ -1,4 +1,4 @@
-"id","name","priority","action","phoneNumber","labelId","isEnabled","isSubscribed","count","avatar"
+"id","name","priority","action","phoneNumber","labelId","isEnabled","autoUpdate","count","avatar"
 "","享库生活","0","none","4000228636","local_services","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/本地生活/享库生活.png"
 "","大众点评","0","none","10100011","local_services","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/本地生活/大众点评.png"
 "","大众点评","0","none","02162980000","local_services","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/本地生活/大众点评.png"

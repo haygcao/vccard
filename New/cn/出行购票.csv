@@ -1,4 +1,4 @@
-"id","name","priority","action","phoneNumber","labelId","isEnabled","isSubscribed","count","avatar"
+"id","name","priority","action","phoneNumber","labelId","isEnabled","autoUpdate","count","avatar"
 "","上海交通卡","0","none","12319","travel_ticketing","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/出行购票/上海交通卡.png"
 "","中国东方航空","0","none","95530","travel_ticketing","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/出行购票/中国东方航空.png"
 "","中国南方航空","0","none","95539","travel_ticketing","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/出行购票/中国南方航空.png"

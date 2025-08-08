@@ -1,4 +1,4 @@
-"id","name","priority","action","phoneNumber","labelId","isEnabled","isSubscribed","count","avatar"
+"id","name","priority","action","phoneNumber","labelId","isEnabled","autoUpdate","count","avatar"
 "","GoFun出行","0","none","4000190808","car_rental","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/租车代驾/GoFun出行.png"
 "","哈啰出行","0","none","02161679500","car_rental","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/租车代驾/哈啰出行.png"
 "","哈啰出行","0","none","95175177","car_rental","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/租车代驾/哈啰出行.png"

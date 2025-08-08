@@ -1,4 +1,4 @@
-"id","name","priority","action","phoneNumber","labelId","isEnabled","isSubscribed","count","avatar"
+"id","name","priority","action","phoneNumber","labelId","isEnabled","autoUpdate","count","avatar"
 "","Aqara","0","none","4009907930","internet","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/互联网/Aqara.png"
 "","UCloud","0","none","4000188113","internet","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/互联网/UCloud.png"
 "","华为","0","none","4008308300","internet","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/互联网/华为.png"

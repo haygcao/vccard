@@ -1,4 +1,4 @@
-"id","name","priority","action","phoneNumber","labelId","isEnabled","isSubscribed","count","avatar"
+"id","name","priority","action","phoneNumber","labelId","isEnabled","autoUpdate","count","avatar"
 "","CUniq","0","none","+85221221188","telecommunication","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/通讯服务/CUniq.png"
 "","CUniq","0","none","+8613068400177","telecommunication","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/通讯服务/CUniq.png"
 "","中国广电","0","none","10099","telecommunication","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/通讯服务/中国广电.png"

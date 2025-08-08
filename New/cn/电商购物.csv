@@ -1,4 +1,4 @@
-"id","name","priority","action","phoneNumber","labelId","isEnabled","isSubscribed","count","avatar"
+"id","name","priority","action","phoneNumber","labelId","isEnabled","autoUpdate","count","avatar"
 "","Adidas","0","none","4009995999","ecommerce","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/电商购物/Adidas.png"
 "","Nike","0","none","4008806453","ecommerce","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/电商购物/Nike.png"
 "","Nike","0","none","8008208865","ecommerce","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/电商购物/Nike.png"

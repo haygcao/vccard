@@ -1,4 +1,4 @@
-"id","name","priority","action","phoneNumber","labelId","isEnabled","isSubscribed","count","avatar"
+"id","name","priority","action","phoneNumber","labelId","isEnabled","autoUpdate","count","avatar"
 "","东兴证券","0","none","95309","insurance","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/证券保险/东兴证券.png"
 "","东方财富","0","none","95357","insurance","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/证券保险/东方财富.png"
 "","中信证券","0","none","95548","insurance","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/证券保险/中信证券.png"
