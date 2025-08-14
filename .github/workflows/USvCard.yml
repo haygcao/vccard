@@ -1,26 +1,19 @@
-name: US FTC Robocall Daily Data Processing
+name: US FCC database Daily Data Processing
 
 on:
   schedule:
-    # 每天 UTC 15:00 运行
-    # This corresponds to:
-    # - 11:00 AM EDT (Daylight Saving Time)
-    # - 10:00 AM EST (Standard Time)
-    - cron: '0 15 * * *'
+    - cron: '0 3 * * *'
   workflow_dispatch:
 
 jobs:
   process_data:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Permissions to write to the repository
-
+      contents: write
     steps:
-      - name: Checkout 'main' branch
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          # v-- MODIFIED HERE: Changed from 'us' to 'main' --v
-          ref: main 
+          ref: main
           fetch-depth: 0
 
       - name: Install Python
@@ -31,105 +24,81 @@ jobs:
       - name: Install pandas and phonenumbers
         run: pip install pandas phonenumbers
 
-      - name: Download and Prepare Directories
+      - name: Download and Process Data
         run: |
-          mkdir -p original
-          mkdir -p US
-          
-          year=$(date -d "yesterday" +%Y)
-          month=$(date -d "yesterday" +%m)
-          day=$(date -d "yesterday" +%d)
-          
-          FTC_URL="https://www.ftc.gov/sites/default/files/DNC_Complaint_Numbers_${year}-${month}-${day}.csv"
-          USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-          REFERER_URL="https://www.ftc.gov/news-events/data-visualizations/do-not-call-complaint-data"
-          
-          echo "Attempting to download from: $FTC_URL"
-          wget --content-disposition \
-               --user-agent="$USER_AGENT" \
-               --referer="$REFERER_URL" \
-               -O original/ftc_data.csv "$FTC_URL"
+          mkdir -p original # Directory for raw download
+          mkdir -p US       # Directory for processed files
+          wget --content-disposition -O original/data.csv https://fccprod.servicenowservices.com/api/x_g_fmc_rmd/rmd/csv_download
 
-      - name: Process FTC Data
-        run: |
           python <<EOF
           import pandas as pd
           import re
           import phonenumbers
-          import os
 
-          input_file = 'original/ftc_data.csv'
-          
-          if not os.path.exists(input_file) or os.path.getsize(input_file) == 0:
-              print(f"Error: The file {input_file} is empty or does not exist. Exiting.")
-              exit(0)
+          df = pd.read_csv('original/data.csv')
+          df = df[['business_name', 'contact_telephone_number']]
+          df = df.rename(columns={'business_name': 'name', 'contact_telephone_number': 'phoneNumber'})
 
-          try:
-              df = pd.read_csv(input_file, encoding='utf-8', on_bad_lines='skip')
-          except Exception as e:
-              print(f"Error reading CSV: {e}. Exiting.")
-              exit(0)
-
-          if 'Company_Phone_Number' not in df.columns:
-              print("Error: 'Company_Phone_Number' column not found in the CSV. Exiting.")
-              exit(0)
-
-          df = df[['Company_Phone_Number']]
-          df = df.rename(columns={'Company_Phone_Number': 'phoneNumber'})
-          df['name'] = ''
-
-          df['phoneNumber'] = df['phoneNumber'].astype(str).apply(lambda x: re.sub(r"\.0$", "", x))
+          df['phoneNumber'] = df['phoneNumber'].astype(str).apply(lambda x: re.sub(r"^'+", "", x))
           df['phoneNumber'] = df['phoneNumber'].str.replace('.', '', regex=False)
           df['phoneNumber'] = df['phoneNumber'].str.strip()
+          df['name'] = df['name'].str.replace(r'[",.]', '', regex=True)
+          df['name'] = df['name'].str.replace(r'[\",.]', '', regex=True)
+          df['name'] = df['name'].str.replace(r'[/]', '', regex=True)
+          #df['name'] = df['name'].str.strip()
 
           def format_phone_number(number):
               try:
-                  if not number or pd.isna(number):
-                      return None
                   if number.startswith("+"):
                       parsed_number = phonenumbers.parse(number, None)
+                      if phonenumbers.is_valid_number(parsed_number):
+                          return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)
                   else:
                       parsed_number = phonenumbers.parse(number, "US")
-                  
-                  if phonenumbers.is_valid_number(parsed_number):
-                      return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)
+                      if phonenumbers.is_valid_number(parsed_number):
+                          return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.NATIONAL)
               except phonenumbers.phonenumberutil.NumberParseException:
                   pass
-              return None
+              return number
 
           df['phoneNumber'] = df['phoneNumber'].apply(format_phone_number)
-          df = df.dropna(subset=['phoneNumber'])
-          df = df.drop_duplicates(subset=['phoneNumber'])
 
-          df_v2 = df.copy()
-          df_v2['priority'] = 3
-          df_v2['action'] = 'block'
-          df_v2['labelId'] = 'robocall'
-          df_v2['isEnabled'] = 1
-          df_v2['isSubscribed'] = 1
-          df_v2['count'] = ''
-          df_v2['avatar'] = ''
-          df_v2['url'] = ''
-          df_v2 = df_v2[['name', 'priority', 'action', 'phoneNumber', 'labelId', 'isEnabled', 'isSubscribed', 'count', 'avatar', 'url']]
-          df_v2.to_csv('US/robocall_processed_v2.csv', index=False)
-          print("Generated new format file: US/robocall_processed_v2.csv")
+          df = df[df['phoneNumber'].notna() & (df['phoneNumber'] != '')]  # Filter after formatting
 
-          df_legacy = df.copy()
-          df_legacy['label'] = 'Robocall'
-          df_legacy['avatar'] = ''
-          df_legacy['isSubscribed'] = 1
-          df_legacy['count'] = ''
-          df_legacy['url'] = ''
-          df_legacy = df_legacy[['phoneNumber', 'label', 'name', 'avatar', 'isSubscribed', 'count', 'url']]
-          df_legacy.to_csv('US/robocall_processed_data.csv', index=False)
-          print("Generated legacy format file: US/robocall_processed_data.csv")
+          # 生成新格式数据
+          #df['id'] = ''
+          df['priority'] = 3
+          df['action'] = 'block'
+          df['labelId'] = 'telemarketing'
+          df['isEnabled'] = 1
+          df['isSubscribed'] = 1
+          df['count'] = ''
+          df['avatar'] = ''
+          df['url'] = ''
+
+          df = df[['name', 'priority', 'action', 'phoneNumber', 'labelId', 'isEnabled', 'isSubscribed', 'count', 'avatar', 'url']]
+          df.to_csv('US/processed_v2.csv', index=False)
+          
+          # 保留原始格式
+          df['label'] = 'Telemarketing'
+          df['avatar'] = ''
+          df['isSubscribed'] = 1
+          df['count'] = ''
+          df['url'] = ''
+          df_legacy = df[['phoneNumber', 'label', 'name', 'avatar', 'isSubscribed', 'count', 'url']]
+          df_legacy.to_csv('US/processed_data.csv', index=False)
           EOF
 
-      - name: Commit Processed Robocall CSV files
+      - name: Commit Processed new CSVs
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update US FTC robocall processed CSV files"
-          file_pattern: "US/robocall_*.csv"
-          # v-- MODIFIED HERE: 'branch: us' line is removed to commit to the checked-out branch (main) --v
-          repository: .
+          commit_message: "Update US FCC processed CSV files"
+          # file_pattern should match the location of the files relative to the repository root
+          # Since 'checkout' checks out to the root, and we put files in 'US/' subdir:
+          file_pattern: US/*.csv
+          # 'repository: .' means the current repository, which is correct.
+          # Use the GITHUB_TOKEN provided by Actions, not a custom secret unless necessary.
           token: ${{ secrets.GITHUB_TOKEN }}
+          # Optional: specify the branch if it's different from the checked-out branch
+          # However, since we checked out 'us', it will commit to 'us' by default.
+          # push_options: --force # Use with caution if rewriting history is intended
