@@ -46,7 +46,7 @@ jobs:
           df = df[df['phoneNumber'].notna() & (df['phoneNumber'] != '')]
 
           # The + sign should be preserved as we are directly reading the CSV
-          df['label'] = 'Spam Likely'
+          df['labelId'] = 'spam-likely'
           df['name'] = ''
           df['avatar'] = ''
           df['isSubscribed'] = 1
