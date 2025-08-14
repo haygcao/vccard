@@ -31,7 +31,7 @@ jobs:
           while read number; do
             pattern=$(echo "$number" | sed 's/+//g; s/#/.*/g; s/^/33/; s/$/$/')
             name="Block numbers starting with ${pattern:2:4}" # Generate name based on pattern 
-            jq -nc '{pattern: "'"$pattern"'", name: "'"$name"'", isWhitelist: false, isBlacklist: true, enabled: true}'
+            jq -nc '{pattern: "'"$pattern"'", name: "'"$name"'", action: block, isEnabled: 1}'
           done > begone.json
 
       - name: Commit and Push CSV
