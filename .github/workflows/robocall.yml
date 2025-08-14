@@ -16,10 +16,11 @@ jobs:
       contents: write # Permissions to write to the repository
 
     steps:
-      - name: Checkout 'us' branch
+      - name: Checkout 'main' branch
         uses: actions/checkout@v4
         with:
-          ref: us # Checkout the 'us' branch
+          # v-- MODIFIED HERE: Changed from 'us' to 'main' --v
+          ref: main 
           fetch-depth: 0
 
       - name: Install Python
@@ -32,11 +33,9 @@ jobs:
 
       - name: Download and Prepare Directories
         run: |
-          # Create directories for original and processed files
           mkdir -p original
           mkdir -p US
           
-          # Get yesterday's date for the URL
           year=$(date -d "yesterday" +%Y)
           month=$(date -d "yesterday" +%m)
           day=$(date -d "yesterday" +%d)
@@ -75,7 +74,6 @@ jobs:
               print("Error: 'Company_Phone_Number' column not found in the CSV. Exiting.")
               exit(0)
 
-          # --- Start Common Processing Logic ---
           df = df[['Company_Phone_Number']]
           df = df.rename(columns={'Company_Phone_Number': 'phoneNumber'})
           df['name'] = ''
@@ -103,7 +101,6 @@ jobs:
           df = df.dropna(subset=['phoneNumber'])
           df = df.drop_duplicates(subset=['phoneNumber'])
 
-          # --- Generate New Format (v2) Data ---
           df_v2 = df.copy()
           df_v2['priority'] = 3
           df_v2['action'] = 'block'
@@ -114,11 +111,9 @@ jobs:
           df_v2['avatar'] = ''
           df_v2['url'] = ''
           df_v2 = df_v2[['name', 'priority', 'action', 'phoneNumber', 'labelId', 'isEnabled', 'isSubscribed', 'count', 'avatar', 'url']]
-          # v-- FILENAME CHANGED HERE --v
           df_v2.to_csv('US/robocall_processed_v2.csv', index=False)
           print("Generated new format file: US/robocall_processed_v2.csv")
 
-          # --- Generate Legacy Format Data ---
           df_legacy = df.copy()
           df_legacy['label'] = 'Robocall'
           df_legacy['avatar'] = ''
@@ -126,7 +121,6 @@ jobs:
           df_legacy['count'] = ''
           df_legacy['url'] = ''
           df_legacy = df_legacy[['phoneNumber', 'label', 'name', 'avatar', 'isSubscribed', 'count', 'url']]
-          # v-- FILENAME CHANGED HERE --v
           df_legacy.to_csv('US/robocall_processed_data.csv', index=False)
           print("Generated legacy format file: US/robocall_processed_data.csv")
           EOF
@@ -135,8 +129,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update US FTC robocall processed CSV files"
-          # v-- FILE PATTERN CHANGED HERE --v
           file_pattern: "US/robocall_*.csv"
-         
+          # v-- MODIFIED HERE: 'branch: us' line is removed to commit to the checked-out branch (main) --v
           repository: .
           token: ${{ secrets.GITHUB_TOKEN }}
