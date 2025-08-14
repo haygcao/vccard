@@ -70,7 +70,7 @@ jobs:
           df['priority'] = 3
           df['action'] = 'block'
           df['labelId'] = 'telemarketing'
-          df['isEnabled'] = True
+          df['isEnabled'] = 1
           df['isSubscribed'] = 1
           df['count'] = ''
           df['avatar'] = ''
@@ -82,7 +82,7 @@ jobs:
           # 保留原始格式
           df['label'] = 'Telemarketing'
           df['avatar'] = ''
-          df['isSubscribed'] = True
+          df['isSubscribed'] = 1
           df['count'] = ''
           df['url'] = ''
           df_legacy = df[['phoneNumber', 'label', 'name', 'avatar', 'isSubscribed', 'count', 'url']]
