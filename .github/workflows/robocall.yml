@@ -3,9 +3,9 @@ name: US FTC Robocall Daily Data Processing
 on:
   schedule:
     # 每天 UTC 15:00 运行
-    # 转换为美国东部时间:
-    # - EDT (夏令时): 11:00 AM EDT
-    # - EST (标准时间): 10:00 AM EST
+    # This corresponds to:
+    # - 11:00 AM EDT (Daylight Saving Time)
+    # - 10:00 AM EST (Standard Time)
     - cron: '0 15 * * *'
   workflow_dispatch:
 
@@ -13,11 +13,13 @@ jobs:
   process_data:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # 确保有写入权限
+      contents: write # Permissions to write to the repository
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout 'us' branch
+        uses: actions/checkout@v4
         with:
-          ref: us # 检出 us 分支
+          ref: us # Checkout the 'us' branch
           fetch-depth: 0
 
       - name: Install Python
@@ -28,40 +30,55 @@ jobs:
       - name: Install pandas and phonenumbers
         run: pip install pandas phonenumbers
 
-      - name: Download FTC data # 这里还是需要加入之前讨论的 User-Agent 和 Referer 头，否则可能继续 403 报错
+      - name: Download and Prepare Directories
         run: |
+          # Create directories for original and processed files
+          mkdir -p original
+          mkdir -p US
+          
+          # Get yesterday's date for the URL
           year=$(date -d "yesterday" +%Y)
           month=$(date -d "yesterday" +%m)
           day=$(date -d "yesterday" +%d)
           
           FTC_URL="https://www.ftc.gov/sites/default/files/DNC_Complaint_Numbers_${year}-${month}-${day}.csv"
-          USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" # 示例，请用你实际测试过的
-          REFERER_URL="https://www.ftc.gov/news-events/data-visualizations/do-not-call-complaint-data" # 示例，请用你实际测试过的
+          USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+          REFERER_URL="https://www.ftc.gov/news-events/data-visualizations/do-not-call-complaint-data"
           
           echo "Attempting to download from: $FTC_URL"
           wget --content-disposition \
                --user-agent="$USER_AGENT" \
                --referer="$REFERER_URL" \
-               -O ftc_data.csv "$FTC_URL"
+               -O original/ftc_data.csv "$FTC_URL"
 
-      - name: Process FTC data
+      - name: Process FTC Data
         run: |
           python <<EOF
           import pandas as pd
           import re
           import phonenumbers
+          import os
+
+          input_file = 'original/ftc_data.csv'
+          
+          if not os.path.exists(input_file) or os.path.getsize(input_file) == 0:
+              print(f"Error: The file {input_file} is empty or does not exist. Exiting.")
+              exit(0)
 
           try:
-              df = pd.read_csv('ftc_data.csv', encoding='utf-8', on_bad_lines='skip')
-          except pd.errors.EmptyDataError:
-              print("Error: CSV file is empty. Exiting.")
-              exit(1)
-          except pd.errors.ParserError as e:
-              print(f"Error parsing CSV: {e}")
-              exit(1)
-          
+              df = pd.read_csv(input_file, encoding='utf-8', on_bad_lines='skip')
+          except Exception as e:
+              print(f"Error reading CSV: {e}. Exiting.")
+              exit(0)
+
+          if 'Company_Phone_Number' not in df.columns:
+              print("Error: 'Company_Phone_Number' column not found in the CSV. Exiting.")
+              exit(0)
+
+          # --- Start Common Processing Logic ---
           df = df[['Company_Phone_Number']]
           df = df.rename(columns={'Company_Phone_Number': 'phoneNumber'})
+          df['name'] = ''
 
           df['phoneNumber'] = df['phoneNumber'].astype(str).apply(lambda x: re.sub(r"\.0$", "", x))
           df['phoneNumber'] = df['phoneNumber'].str.replace('.', '', regex=False)
@@ -69,36 +86,57 @@ jobs:
 
           def format_phone_number(number):
               try:
+                  if not number or pd.isna(number):
+                      return None
                   if number.startswith("+"):
                       parsed_number = phonenumbers.parse(number, None)
-                      if phonenumbers.is_valid_number(parsed_number):
-                          return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)
                   else:
                       parsed_number = phonenumbers.parse(number, "US")
-                      if phonenumbers.is_valid_number(parsed_number):
-                          return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.NATIONAL)
+                  
+                  if phonenumbers.is_valid_number(parsed_number):
+                      return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)
               except phonenumbers.phonenumberutil.NumberParseException:
                   pass
-              return number
+              return None
 
           df['phoneNumber'] = df['phoneNumber'].apply(format_phone_number)
-          df = df[df['phoneNumber'].notna() & (df['phoneNumber'] != '')]
+          df = df.dropna(subset=['phoneNumber'])
+          df = df.drop_duplicates(subset=['phoneNumber'])
 
-          df['label'] = 'Robocall'
-          df['name'] = ''
-          df['avatar'] = ''
-          df['isSubscribed'] = 1
-          df['count'] = ''
-          df['url'] = ''
-          df = df[['phoneNumber', 'label', 'name', 'avatar', 'isSubscribed', 'count', 'url']]
-          df.to_csv('processed_ftc_data.csv', index=False)
+          # --- Generate New Format (v2) Data ---
+          df_v2 = df.copy()
+          df_v2['priority'] = 3
+          df_v2['action'] = 'block'
+          df_v2['labelId'] = 'robocall'
+          df_v2['isEnabled'] = 1
+          df_v2['isSubscribed'] = 1
+          df_v2['count'] = ''
+          df_v2['avatar'] = ''
+          df_v2['url'] = ''
+          df_v2 = df_v2[['name', 'priority', 'action', 'phoneNumber', 'labelId', 'isEnabled', 'isSubscribed', 'count', 'avatar', 'url']]
+          # v-- FILENAME CHANGED HERE --v
+          df_v2.to_csv('US/robocall_processed_v2.csv', index=False)
+          print("Generated new format file: US/robocall_processed_v2.csv")
+
+          # --- Generate Legacy Format Data ---
+          df_legacy = df.copy()
+          df_legacy['label'] = 'Robocall'
+          df_legacy['avatar'] = ''
+          df_legacy['isSubscribed'] = 1
+          df_legacy['count'] = ''
+          df_legacy['url'] = ''
+          df_legacy = df_legacy[['phoneNumber', 'label', 'name', 'avatar', 'isSubscribed', 'count', 'url']]
+          # v-- FILENAME CHANGED HERE --v
+          df_legacy.to_csv('US/robocall_processed_data.csv', index=False)
+          print("Generated legacy format file: US/robocall_processed_data.csv")
           EOF
 
-      - name: Commit and Push CSV
+      - name: Commit Processed Robocall CSV files
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Update processed FTC data"
-          file_pattern: "processed_ftc_data.csv"
-          branch: us
-          repository: . # 保持为 . 表示当前仓库
-          token: ${{ secrets.GITHUB_TOKEN }} # <-- 这里是关键的修改！
+          commit_message: "Update US FTC robocall processed CSV files"
+          # v-- FILE PATTERN CHANGED HERE --v
+          file_pattern: "US/robocall_*.csv"
+         
+          repository: .
+          token: ${{ secrets.GITHUB_TOKEN }}
