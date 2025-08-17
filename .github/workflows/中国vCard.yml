@@ -46,7 +46,7 @@ jobs:
               csv_filename = f'原始/cn/{label}.csv'
               with open(csv_filename, 'w', encoding='utf-8', newline='') as f:
                 writer = csv.writer(f, quoting=csv.QUOTE_ALL)
-                writer.writerow(['phoneNumber', 'label', 'name', 'avatar', 'autoUpdate', 'count', 'url'])
+                writer.writerow(['phoneNumber', 'label', 'name', 'avatar', 'isSubscribed', 'count', 'url'])
 
                 folder_url = folder["url"]
                 folder_response = requests.get(folder_url, headers=headers)
@@ -109,7 +109,7 @@ jobs:
                       writer = csv.writer(outfile, quoting=csv.QUOTE_ALL)
 
                       writer.writerow(['id', 'name', 'priority', 'action', 'phoneNumber',
-                                      'labelId', 'isEnabled', 'autoUpdate', 'count', 'avatar'])
+                                      'labelId', 'isEnabled', 'isSubscribed', 'count', 'avatar'])
 
                       for row in reader:
                           new_row = [
@@ -120,7 +120,7 @@ jobs:
                               row['phoneNumber'],
                               label_mapping.get(row['label'], 'other'),
                               'true',
-                              row['autoUpdate'],
+                              row['isSubscribed'],
                               row['count'],
                               row['avatar']
                           ]
