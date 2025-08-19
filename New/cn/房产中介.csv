@@ -1,4 +1,4 @@
-"id","name","priority","action","phoneNumber","labelId","isEnabled","autoUpdate","count","avatar"
-"","自如","0","none","4001001111","agent","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/房产中介/自如.png"
-"","酷家乐","0","none","4008357300","agent","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/房产中介/酷家乐.png"
-"","链家","0","none","10109666","agent","true","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/房产中介/链家.png"
+"name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
+"自如","","4001001111","agent","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/房产中介/自如.png","1",""
+"酷家乐","","4008357300","agent","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/房产中介/酷家乐.png","1",""
+"链家","","10109666","agent","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/房产中介/链家.png","1",""
