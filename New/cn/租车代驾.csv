@@ -1,4 +1,4 @@
-"id","name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
+"name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
 "GoFun出行","phone_rule","4000190808","car_rental","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/租车代驾/GoFun出行.png","1","0"
 "哈啰出行","phone_rule","02161679500","car_rental","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/租车代驾/哈啰出行.png","1","0"
 "哈啰出行","phone_rule","95175177","car_rental","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/租车代驾/哈啰出行.png","1","0"

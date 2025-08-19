@@ -1,4 +1,4 @@
-"id","name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
+"name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
 "自如","phone_rule","4001001111","agent","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/房产中介/自如.png","1","0"
 "酷家乐","phone_rule","4008357300","agent","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/房产中介/酷家乐.png","1","0"
 "链家","phone_rule","10109666","agent","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/房产中介/链家.png","1","0"

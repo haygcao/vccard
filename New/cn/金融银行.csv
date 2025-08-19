@@ -1,4 +1,4 @@
-"id","name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
+"name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
 "上海农村商业银行","phone_rule","962999","bank","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/金融银行/上海农村商业银行.png","1","0"
 "上海农村商业银行","phone_rule","4006962999","bank","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/金融银行/上海农村商业银行.png","1","0"
 "上海银行","phone_rule","95594","bank","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/金融银行/上海银行.png","1","0"

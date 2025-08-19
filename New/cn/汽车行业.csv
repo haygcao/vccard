@@ -1,4 +1,4 @@
-"id","name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
+"name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
 "中国石化","phone_rule","95388","automotive_industry","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/汽车行业/中国石化.png","1","0"
 "中国石油","phone_rule","95504","automotive_industry","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/汽车行业/中国石油.png","1","0"
 "中国石油","phone_rule","956100","automotive_industry","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/汽车行业/中国石油.png","1","0"

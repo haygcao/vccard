@@ -1,4 +1,4 @@
-"id","name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
+"name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
 "DHL","phone_rule","95380","delivery","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/快递物流/DHL.png","1","0"
 "中国邮政","phone_rule","11183","delivery","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/快递物流/中国邮政.png","1","0"
 "中国邮政","phone_rule","11185","delivery","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/快递物流/中国邮政.png","1","0"

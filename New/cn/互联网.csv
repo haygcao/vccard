@@ -1,4 +1,4 @@
-"id","name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
+"name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
 "Aqara","phone_rule","4009907930","internet","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/互联网/Aqara.png","1","0"
 "UCloud","phone_rule","4000188113","internet","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/互联网/UCloud.png","1","0"
 "华为","phone_rule","4008308300","internet","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/互联网/华为.png","1","0"

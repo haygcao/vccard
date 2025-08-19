@@ -1,4 +1,4 @@
-"id","name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
+"name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
 "优酷","phone_rule","4008100580","entertainment","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/影音娱乐/优酷.png","1","0"
 "喜马拉雅","phone_rule","4008385616","entertainment","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/影音娱乐/喜马拉雅.png","1","0"
 "小宇宙","phone_rule","057488382026","entertainment","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/影音娱乐/小宇宙.png","1","0"

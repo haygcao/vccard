@@ -1,4 +1,4 @@
-"id","name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
+"name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
 "Apple","phone_rule","4006668800","other","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/其它/Apple.png","1","0"
 "Apple","phone_rule","4006272273","other","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/其它/Apple.png","1","0"
 "Apple","phone_rule","4006198141","other","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/其它/Apple.png","1","0"

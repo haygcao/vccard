@@ -1,4 +1,4 @@
-"id","name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
+"name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
 "Teambition","phone_rule","4000605576","application_software","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/应用软件/Teambition.png","1","0"
 "WPS","phone_rule","4006775005","application_software","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/应用软件/WPS.png","1","0"
 "ToDesk","phone_rule","089865337739","application_software","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/应用软件/todesk.png","1","0"

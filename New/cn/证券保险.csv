@@ -1,4 +1,4 @@
-"id","name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
+"name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
 "东兴证券","phone_rule","95309","insurance","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/证券保险/东兴证券.png","1","0"
 "东方财富","phone_rule","95357","insurance","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/证券保险/东方财富.png","1","0"
 "中信证券","phone_rule","95548","insurance","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/证券保险/中信证券.png","1","0"
