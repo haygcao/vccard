@@ -115,7 +115,7 @@ jobs:
                           # 按照新的顺序创建行数据，对于没有的列留空
                           new_row = [
                               row['name'],
-                              '',  # ruleType - 留空
+                              'phone_rule',  # ruleType - 留空
                               row['phoneNumber'],
                               label_mapping.get(row['label'], 'other'), # labelId
                               0,   # priority
