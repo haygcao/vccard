@@ -64,7 +64,7 @@ jobs:
                       
                       if isinstance(data['basic']['cellPhone'], list):
                         for phone in data['basic']['cellPhone']:
-                          cleaned_phone = re.sub(r'[- ]|,[\d]*$', '', str(phone)) # 正确的正则表达式 # 更新清理规则 cleaned_phone = re.sub(r'[- ]', '', str(phone)) # 转换 phone 为字符串
+                          cleaned_phone = re.sub(r'[- ]|,[\d]*$', '', str(phone))
                           writer.writerow([cleaned_phone, label, organization, avatar, '1', '', ''])
                       else:
                         print(f"Warning: cellPhone is not a list in {file['name']}")
@@ -108,21 +108,23 @@ jobs:
                       reader = csv.DictReader(infile)
                       writer = csv.writer(outfile, quoting=csv.QUOTE_ALL)
 
-                      writer.writerow(['id', 'name', 'priority', 'action', 'phoneNumber',
-                                      'labelId', 'isEnabled', 'isSubscribed', 'count', 'avatar'])
+                      # 按照您要求的顺序写入新的CSV表头
+                      writer.writerow(['name', 'ruleType', 'phoneNumber', 'labelId', 'priority', 'action', 'isEnabled', 'pattern', 'avatar', 'isSubscribed', 'count'])
 
                       for row in reader:
+                          # 按照新的顺序创建行数据，对于没有的列留空
                           new_row = [
-                              '',
                               row['name'],
-                              0,
-                              'none',
+                              '',  # ruleType - 留空
                               row['phoneNumber'],
-                              label_mapping.get(row['label'], 'other'),
-                              'true',
+                              label_mapping.get(row['label'], 'other'), # labelId
+                              0,   # priority
+                              'none', # action
+                              1,   # isEnabled (1 for true)
+                              '',  # pattern - 留空
+                              row['avatar'],
                               row['isSubscribed'],
-                              row['count'],
-                              row['avatar']
+                              row['count']
                           ]
                           writer.writerow(new_row)
           EOF
@@ -144,4 +146,3 @@ jobs:
             New/cn/*.csv
           repository: .
           token: ${{ secrets.YOUR_GITHUB_TOKEN }}
-          
