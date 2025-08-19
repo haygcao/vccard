@@ -65,7 +65,7 @@ jobs:
                       if isinstance(data['basic']['cellPhone'], list):
                         for phone in data['basic']['cellPhone']:
                           cleaned_phone = re.sub(r'[- ]|,[\d]*$', '', str(phone))
-                          writer.writerow([cleaned_phone, label, organization, avatar, '1', '', ''])
+                          writer.writerow([cleaned_phone, label, organization, avatar, '1', '0', ''])
                       else:
                         print(f"Warning: cellPhone is not a list in {file['name']}")
                     else:
