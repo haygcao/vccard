@@ -113,8 +113,7 @@ jobs:
 
                       for row in reader:
                           # 按照新的顺序创建行数据，对于没有的列留空
-                          new_row = [
-                              '',# id 
+                          new_row = [                              
                               row['name'],
                               'phone_rule',  # ruleType 
                               row['phoneNumber'],
