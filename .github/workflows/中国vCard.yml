@@ -109,13 +109,14 @@ jobs:
                       writer = csv.writer(outfile, quoting=csv.QUOTE_ALL)
 
                       # 按照您要求的顺序写入新的CSV表头
-                      writer.writerow(['name', 'ruleType', 'phoneNumber', 'labelId', 'priority', 'action', 'isEnabled', 'pattern', 'avatar', 'isSubscribed', 'count'])
+                      writer.writerow(['id','name', 'ruleType', 'phoneNumber', 'labelId', 'priority', 'action', 'isEnabled', 'pattern', 'avatar', 'isSubscribed', 'count'])
 
                       for row in reader:
                           # 按照新的顺序创建行数据，对于没有的列留空
                           new_row = [
+                              '',# id 
                               row['name'],
-                              'phone_rule',  # ruleType - 留空
+                              'phone_rule',  # ruleType 
                               row['phoneNumber'],
                               label_mapping.get(row['label'], 'other'), # labelId
                               0,   # priority
