@@ -1,4 +1,4 @@
-"phoneNumber","label","name","avatar","autoUpdate","count","url"
+"phoneNumber","label","name","avatar","isSubscribed","count","url"
 "4001001111","房产中介","自如","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/房产中介/自如.png","1","",""
 "4008357300","房产中介","酷家乐","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/房产中介/酷家乐.png","1","",""
 "10109666","房产中介","链家","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/房产中介/链家.png","1","",""

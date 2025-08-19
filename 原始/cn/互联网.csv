@@ -1,4 +1,4 @@
-"phoneNumber","label","name","avatar","autoUpdate","count","url"
+"phoneNumber","label","name","avatar","isSubscribed","count","url"
 "4009907930","互联网","Aqara","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/互联网/Aqara.png","1","",""
 "4000188113","互联网","UCloud","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/互联网/UCloud.png","1","",""
 "4008308300","互联网","华为","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/互联网/华为.png","1","",""
