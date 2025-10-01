@@ -1,6 +1,7 @@
 "name","ruleType","phoneNumber","labelId","priority","action","isEnabled","pattern","avatar","isSubscribed","count"
 "中华全国总工会","phone_rule","12351","government","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/政府机构/中华全国总工会.png","1","0"
 "中国税务","phone_rule","12366","government","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/政府机构/中国税务.png","1","0"
+"中国税务","phone_rule","123660","government","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/政府机构/中国税务.png","1","0"
 "交通管理局","phone_rule","12123","government","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/政府机构/交通管理局.png","1","0"
 "交通管理局","phone_rule","121232303","government","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/政府机构/交通管理局.png","1","0"
 "交通管理局","phone_rule","121233100","government","0","none","1","","https://raw.githubusercontent.com/metowolf/vCards/refs/heads/master/data/政府机构/交通管理局.png","1","0"
