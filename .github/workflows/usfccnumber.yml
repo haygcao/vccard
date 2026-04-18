@@ -1,4 +1,4 @@
-Name: US FCCnumber database Daily Data Processing
+name: US FCCnumber database Daily Data Processing
 
 on:
   schedule:
