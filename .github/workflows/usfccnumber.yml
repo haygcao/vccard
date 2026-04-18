@@ -1,0 +1,103 @@
+Name: US FCCnumber database Daily Data Processing
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  process_data:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install pandas and phonenumbers
+        run: pip install pandas phonenumbers
+
+      - name: Download and Process Data
+        run: |
+          mkdir -p original # Directory for raw download
+          mkdir -p US       # Directory for processed files
+          wget --content-disposition -O original/data.csv https://fccprod.servicenowservices.com/api/x_g_fmc_rmd/rmd/csv_download
+
+          python <<EOF
+          import pandas as pd
+          import re
+          import phonenumbers
+
+          df = pd.read_csv('original/data.csv')
+          df = df[['business_name', 'contact_telephone_number']]
+          df = df.rename(columns={'business_name': 'name', 'contact_telephone_number': 'phoneNumber'})
+
+          # 1. 安全处理空值：把所有的 NaN 替换成空字符串，避免变成字面字符串 "nan"
+          df['phoneNumber'] = df['phoneNumber'].fillna('')
+          df['name'] = df['name'].fillna('')
+
+          # 2. 统一转换为字符串类型
+          df['phoneNumber'] = df['phoneNumber'].astype(str)
+          df['name'] = df['name'].astype(str)
+
+          # 3. 文本清洗
+          df['phoneNumber'] = df['phoneNumber'].apply(lambda x: re.sub(r"^'+", "", x))
+          df['phoneNumber'] = df['phoneNumber'].str.replace('.', '', regex=False)
+          df['phoneNumber'] = df['phoneNumber'].str.strip()
+          
+          # 合并了冗余的正则替换
+          df['name'] = df['name'].str.replace(r'[",./]', '', regex=True)
+
+          def format_phone_number(number):
+              if not number: # 遇到空字符串直接跳过
+                  return number
+              try:
+                  if number.startswith("+"):
+                      parsed_number = phonenumbers.parse(number, None)
+                      if phonenumbers.is_valid_number(parsed_number):
+                          return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)
+                  else:
+                      parsed_number = phonenumbers.parse(number, "US")
+                      if phonenumbers.is_valid_number(parsed_number):
+                          return phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.NATIONAL)
+              except phonenumbers.phonenumberutil.NumberParseException:
+                  pass
+              return number
+
+          df['phoneNumber'] = df['phoneNumber'].apply(format_phone_number)
+
+          # 4. 过滤无效数据
+          df = df[df['phoneNumber'].notna() & (df['phoneNumber'] != '')]
+
+          # 生成新格式数据 processed_v2.csv
+          df['priority'] = 3
+          df['action'] = 'block'
+          df['labelId'] = 'telemarketing'
+          df['isEnabled'] = 1
+          df['isSubscribed'] = 1
+          df['count'] = ''
+          df['avatar'] = ''
+          df['url'] = ''
+
+          df_v2 = df[['name', 'priority', 'action', 'phoneNumber', 'labelId', 'isEnabled', 'isSubscribed', 'count', 'avatar', 'url']]
+          df_v2.to_csv('US/processed_v2.csv', index=False)
+          
+          # 生成旧格式数据 processed_data.csv (保留原始格式)
+          df['label'] = 'Telemarketing'
+          df_legacy = df[['phoneNumber', 'label', 'name', 'avatar', 'isSubscribed', 'count', 'url']]
+          df_legacy.to_csv('US/processed_data.csv', index=False)
+          EOF
+
+      - name: Commit Processed new CSVs
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update US FCC processed CSV files"
+          file_pattern: US/*.csv
+          token: \${{ secrets.GITHUB_TOKEN }}
